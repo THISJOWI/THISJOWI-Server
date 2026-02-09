@@ -1,885 +1,213 @@
 <div align="center">
 
-<img src="https://pub-9030d6e053cc40b380e0f63662daf8ed.r2.dev/logo.png" alt="THISJOWI Logo" width="200"/>
+<img src="https://pub-9030d6e053cc40b380e0f63662daf8ed.r2.dev/logo.png" alt="THISJOWI Logo" width="150"/>
 
-# 🚀 THISJOWI Server
+# THISJOWI Server
 
-### Modern Microservices Architecture with Spring Boot
+**Microservices backend with Spring Boot + Kubernetes**
 
-[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2023.0.0-green?style=for-the-badge)](https://spring.io/projects/spring-cloud)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENCE.md)
-
-[🎯 Features](#-features) •
-[🏗️ Architecture](#️-architecture) •
-[🚀 Quick Start](#-quick-start) •
-[📚 API Docs](#-api-documentation) •
-[🤝 Contributing](CONTRIBUTING.md)
+[![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk)](https://openjdk.org/) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?style=flat-square&logo=spring)](https://spring.io/) [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=flat-square&logo=kubernetes)](https://kubernetes.io/) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 
 </div>
 
----
+## 🚀 Quick Start
 
-## 📋 Table of Contents
+### Prerequisites
+- Java 21+
+- Docker & Docker Compose
+- PostgreSQL, Redis, Kafka (or use Docker)
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Architecture](#️-architecture)
-- [Tech Stack](#-tech-stack)
-- [Services](#-services)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Running the Application](#-running-the-application)
-- [Configuration](#-configuration)
-- [API Documentation](#-api-documentation)
-- [Deployment](#-deployment)
-- [Development](#-development)
-- [Testing](#-testing)
-- [Security](#-security)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Support](#-support)
-
----
-
-## 🎯 Overview
-
-**THISJOWI Backend** is a production-ready microservices architecture built with Spring Boot, designed for scalability, reliability, and security. It provides a complete backend solution with:
-
-- 🔐 **Secure Authentication** - JWT-based authentication with OAuth2 integration
-- 📝 **Notes Management** - Complete CRUD operations with AES-256 encryption
-- 🔑 **Password Vault** - Secure password storage and management system
-- 🌐 **API Gateway** - Centralized routing and load balancing with Spring Cloud Gateway
-- 🔍 **Service Discovery** - Automatic service registration with Netflix Eureka
-- 📊 **Event-Driven** - Kafka integration for asynchronous communication
-- 🐳 **Container Ready** - Docker and Kubernetes deployment configurations
-- 🔒 **Secrets Management** - HashiCorp Vault integration for secure credential storage
-
----
-
-## ✨ Features
-
-<details>
-<summary><b>🔐 Authentication & Security</b></summary>
-
-- JWT token generation and validation
-- OAuth2 authentication (Google, GitHub)
-- Spring Security integration
-- Redis-based session caching
-- HashiCorp Vault for secrets management
-- Password encryption with BCrypt
-- Token refresh mechanism
-- Role-based access control (RBAC)
-
-</details>
-
-<details>
-<summary><b>� Notes Management</b></summary>
-
-- Create, read, update, delete notes
-- AES-256-CBC encryption for content
-- User-specific note isolation
-- Tag-based organization
-- Full-text search capabilities
-- Kafka event publishing for note changes
-- RESTful API design
-- Swagger/OpenAPI documentation
-
-</details>
-
-<details>
-<summary><b>🔑 Password Management</b></summary>
-
-- Secure password storage with encryption
-- Password generation utilities
-- Password sharing capabilities
-- Category-based organization
-- Kafka integration for audit logging
-- Auto-expiration for shared passwords
-- Password strength validation
-- Encrypted at rest and in transit
-
-</details>
-
-<details>
-<summary><b>🏗️ Microservices Architecture</b></summary>
-
-- Service discovery with Eureka
-- API Gateway for routing
-- Load balancing
-- Circuit breakers (Resilience4j)
-- Distributed tracing
-- Centralized logging
-- Health monitoring
-- Metrics and monitoring ready
-
-</details>
-
-<details>
-<summary><b>☁️ Cloud Native & DevOps</b></summary>
-
-- Docker containerization
-- Kubernetes manifests
-- Horizontal scaling support
-- Rolling updates
-- Health checks and probes
-- ConfigMaps and Secrets
-- Ingress configuration
-- CI/CD ready
-
-</details>
-
----
-
-## 🏗 Architecture
-
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        A[Mobile/Web Clients]
-    end
-    
-    subgraph "API Gateway"
-        B[Cloud Gateway<br/>Port: 8100]
-    end
-    
-    subgraph "Service Discovery"
-        C[Eureka Server<br/>Port: 8761]
-    end
-    
-    subgraph "Microservices"
-        D[Authentication Service<br/>Port: 8082]
-        E[Notes Service<br/>Port: 8083]
-        F[Password Service<br/>Port: 8084]
-    end
-    
-    subgraph "Data Layer"
-        G[(PostgreSQL<br/>Auth DB)]
-        H[(PostgreSQL<br/>Notes DB)]
-        I[(PostgreSQL<br/>Password DB)]
-        J[Redis/KeyDB<br/>Cache]
-    end
-    
-    subgraph "Message Queue"
-        K[Apache Kafka<br/>Event Streaming]
-    end
-    
-    subgraph "Security"
-        L[HashiCorp Vault<br/>Secrets Management]
-    end
-    
-    A -->|HTTPS| B
-    B -->|Route| C
-    B -->|Route| D
-    B -->|Route| E
-    B -->|Route| F
-    
-    D -.->|Register| C
-    E -.->|Register| C
-    F -.->|Register| C
-    
-    D -->|Store Users| G
-    E -->|Store Notes| H
-    F -->|Store Passwords| I
-    
-    D -->|Session Cache| J
-    F -->|Publish Events| K
-    E -->|Publish Events| K
-    
-    D -->|Fetch Secrets| L
-    
-    style A fill:#02569B,stroke:#01579B,color:#fff
-    style B fill:#6DB33F,stroke:#4CAF50,color:#fff
-    style C fill:#FF6B6B,stroke:#E53935,color:#fff
-    style D fill:#4ECDC4,stroke:#26A69A,color:#fff
-    style E fill:#95E1D3,stroke:#4DB6AC,color:#000
-    style F fill:#F38181,stroke:#EF5350,color:#fff
-    style K fill:#FFA726,stroke:#FB8C00,color:#fff
-    style L fill:#7E57C2,stroke:#5E35B1,color:#fff
-```
-
-### 🔄 Request Flow
-
-```mermaid
-sequenceDiagram
-    participant Client as 📱 Client
-    participant Gateway as Cloud Gateway
-    participant Eureka as Eureka Server
-    participant Auth as Auth Service
-    participant Notes as Notes Service
-    participant DB as PostgreSQL
-    participant Cache as Redis
-    participant Kafka as Kafka
-    
-    Client->>Gateway: POST /api/auth/login
-    Gateway->>Eureka: Discover Auth Service
-    Eureka-->>Gateway: Service Location
-    Gateway->>Auth: Forward Request
-    Auth->>DB: Validate Credentials
-    DB-->>Auth: User Data
-    Auth->>Cache: Store Session
-    Auth-->>Gateway: JWT Token
-    Gateway-->>Client: Authentication Response
-    
-    Client->>Gateway: GET /api/v1/notes (+ JWT)
-    Gateway->>Auth: Validate Token
-    Auth->>Cache: Check Session
-    Cache-->>Auth: Valid Session
-    Auth-->>Gateway: Authorized
-    Gateway->>Eureka: Discover Notes Service
-    Eureka-->>Gateway: Service Location
-    Gateway->>Notes: Forward Request
-    Notes->>DB: Query Notes
-    DB-->>Notes: Encrypted Notes
-    Notes->>Notes: Decrypt Content
-    Notes->>Kafka: Publish Access Event
-    Notes-->>Gateway: Notes Response
-    Gateway-->>Client: Decrypted Notes
-```
-
----
-
-## 🛠️ Tech Stack
-
-### Core Technologies
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| ![Java](https://img.shields.io/badge/Java-ED8B00?style=flat&logo=openjdk&logoColor=white) | 21 | Programming language |
-| ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat&logo=spring-boot&logoColor=white) | 3.2.5 | Backend framework |
-| ![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-green?style=flat) | 2023.0.0 | Microservices toolkit |
-| ![Maven](https://img.shields.io/badge/Maven-C71A36?style=flat&logo=apache-maven&logoColor=white) | 3.8+ | Build & dependency management |
-
-### Microservices Components
-| Technology | Purpose |
-|-----------|---------|
-| ![Spring Security](https://img.shields.io/badge/Spring%20Security-6DB33F?style=flat&logo=spring&logoColor=white) | Authentication & Authorization |
-| ![Eureka](https://img.shields.io/badge/Netflix%20Eureka-red?style=flat) | Service Discovery |
-| ![Spring Cloud Gateway](https://img.shields.io/badge/Cloud%20Gateway-6DB33F?style=flat) | API Gateway & Routing |
-| ![Resilience4j](https://img.shields.io/badge/Resilience4j-orange?style=flat) | Circuit Breaker & Fault Tolerance |
-
-### Data & Caching
-| Technology | Purpose |
-|-----------|---------|
-| ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white) | Primary database |
-| ![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white) | Session caching & performance |
-| ![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=flat&logo=hibernate&logoColor=white) | ORM & data persistence |
-
-### Messaging & Streaming
-| Technology | Purpose |
-|-----------|---------|
-| ![Kafka](https://img.shields.io/badge/Apache%20Kafka-231F20?style=flat&logo=apache-kafka&logoColor=white) | Event streaming & messaging |
-
-### Security & Secrets
-| Technology | Purpose |
-|-----------|---------|
-| ![Vault](https://img.shields.io/badge/HashiCorp%20Vault-000000?style=flat&logo=vault&logoColor=white) | Secrets management |
-| ![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=json-web-tokens&logoColor=white) | Token-based authentication |
-
-### DevOps & Deployment
-| Technology | Purpose |
-|-----------|---------|
-| ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) | Containerization |
-| ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white) | Container orchestration |
-| ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logo=github-actions&logoColor=white) | CI/CD pipelines |
-
-### Documentation & Monitoring
-| Technology | Purpose |
-|-----------|---------|
-| ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat&logo=swagger&logoColor=black) | API documentation |
-| ![Spring Actuator](https://img.shields.io/badge/Actuator-6DB33F?style=flat) | Health checks & metrics |
-
----
-
-## 🎛 Services
-
-### 1. **Authentication Service** (`/Authentication`)
-
-<details>
-<summary>View Details</summary>
-
-**Description:** Handles user authentication, authorization, and session management.
-
-**Key Features:**
-- User registration and login
-- JWT token generation and validation
-- OAuth2 integration (Google, GitHub)
-- Redis-based session caching
-- Vault integration for secrets
-- Password reset functionality
-- Role-based access control
-
-**Technology Stack:**
-- Spring Boot 3.2.5
-- Spring Security
-- Spring Data JPA
-- Redis/KeyDB
-- PostgreSQL
-- HashiCorp Vault
-
-**Port:** `8082` | **Endpoint:** `/api/auth`
-
-**Swagger UI:** `http://localhost:8082/swagger-ui.html`
-
-</details>
-
-### 2. **Notes Service** (`/Notes`)
-
-<details>
-<summary>View Details</summary>
-
-**Description:** Provides comprehensive note management with encryption.
-
-**Key Features:**
-- Create, read, update, delete notes
-- AES-256-CBC encryption for content
-- User-specific note management
-- Tag-based organization
-- Kafka event publishing
-- Full-text search
-- Note sharing capabilities
-
-**Technology Stack:**
-- Spring Boot 3.2.5
-- Spring Data JPA
-- PostgreSQL
-- Apache Kafka
-- AES Encryption
-
-**Port:** `8083` | **Endpoint:** `/api/v1/notes`
-
-**Swagger UI:** `http://localhost:8083/swagger-ui.html`
-
-</details>
-
-### 3. **Password Service** (`/Password`)
-
-<details>
-<summary>View Details</summary>
-
-**Description:** Secure password vault for storing and managing credentials.
-
-**Key Features:**
-- Secure password storage
-- Password generation
-- Encryption at rest
-- Password sharing
-- Category management
-- Kafka integration for audit logs
-- Auto-expiration for shared passwords
-
-**Technology Stack:**
-- Spring Boot 3.2.5
-- Spring Data JPA
-- PostgreSQL
-- Apache Kafka
-- Encryption utilities
-
-**Port:** `8084` | **Endpoint:** `/api/v1/passwords`
-
-**Documentation:** See [KAFKA_INTEGRATION.md](Password/KAFKA_INTEGRATION.md)
-
-</details>
-
-### 4. **Cloud Gateway** (`/Cloud`)
-
-<details>
-<summary>View Details</summary>
-
-**Description:** API Gateway for routing and load balancing.
-
-**Key Features:**
-- Request routing to microservices
-- Load balancing
-- CORS configuration
-- Rate limiting
-- Request/response filtering
-- Circuit breaker integration
-- Service discovery integration
-
-**Technology Stack:**
-- Spring Cloud Gateway
-- Spring Cloud Netflix
-- Eureka Client
-
-**Port:** `8100` | **Endpoint:** `/api/*`
-
-</details>
-
-### 5. **Eureka Discovery Server** (`/Eureka`)
-
-<details>
-<summary>View Details</summary>
-
-**Description:** Service registry for automatic service discovery.
-
-**Key Features:**
-- Service registration
-- Service discovery
-- Health monitoring
-- Load balancing support
-- Failover capabilities
-- Dashboard UI
-
-**Technology Stack:**
-- Spring Cloud Netflix Eureka
-- Spring Boot
-
-**Port:** `8761` | **Dashboard:** `http://localhost:8761`
-
-</details>
-
----
-
-## 📁 Project Structure
-
-```
-backend/
-│
-├── ⚙️ Authentication/              # 🔐 Authentication Service (Port 8082)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/uk/thisjowi/Authentication/
-│   │   │   │   ├── config/          # Security & Redis configuration
-│   │   │   │   ├── controller/      # REST endpoints
-│   │   │   │   ├── dto/             # Data Transfer Objects
-│   │   │   │   ├── entity/          # JPA entities
-│   │   │   │   ├── filters/         # JWT & auth filters
-│   │   │   │   ├── kafka/           # Kafka configuration
-│   │   │   │   ├── model/           # Domain models
-│   │   │   │   ├── repository/      # Data access layer
-│   │   │   │   ├── service/         # Business logic
-│   │   │   │   └── utils/           # Utility classes
-│   │   │   └── resources/
-│   │   │       └── application.yaml # Service configuration
-│   │   └── test/                    # Unit & integration tests
-│   ├── Dockerfile
-│   ├── compose.yaml
-│   └── pom.xml
-│
-├── 📝 Notes/                        # 📝 Notes Service (Port 8083)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/uk/thisjowi/Notes/
-│   │   │   │   ├── config/          # Configuration classes
-│   │   │   │   ├── controller/      # REST controllers
-│   │   │   │   ├── entity/          # Note entities
-│   │   │   │   ├── kafka/           # Kafka producers
-│   │   │   │   ├── repository/      # JPA repositories
-│   │   │   │   ├── service/         # Business logic
-│   │   │   │   └── Utils/           # Encryption utilities
-│   │   │   └── resources/
-│   │   │       └── application.yml
-│   │   └── test/
-│   ├── Dockerfile
-│   ├── compose.yaml
-│   └── pom.xml
-│
-├── 🔑 Password/                     # 🔑 Password Service (Port 8084)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/uk/thisjowi/Password/
-│   │   │   │   ├── Config/          # Security configuration
-│   │   │   │   ├── controller/      # REST endpoints
-│   │   │   │   ├── entity/          # Password entities
-│   │   │   │   ├── kafka/           # Kafka integration
-│   │   │   │   ├── repository/      # Data repositories
-│   │   │   │   └── service/         # Business services
-│   │   │   └── resources/
-│   │   │       └── application.yaml
-│   │   └── test/
-│   ├── Dockerfile
-│   ├── compose.yaml
-│   ├── pom.xml
-│   └── KAFKA_INTEGRATION.md         # Kafka setup guide
-│
-├── 🌐 Cloud/                        # ☁️ API Gateway (Port 8100)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/uk/thisjowi/Cloud/
-│   │   │   │   └── CloudApplication.java
-│   │   │   └── resources/
-│   │   │       └── application.yml  # Gateway routes
-│   │   └── test/
-│   ├── Dockerfile
-│   ├── compose.yaml
-│   ├── pom.xml
-│   └── README.Docker.md
-│
-├── 🔍 Eureka/                       # 📡 Service Discovery (Port 8761)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/uk/thisjowi/Eureka/
-│   │   │   │   └── EurekaApplication.java
-│   │   │   └── resources/
-│   │   │       └── application.yml
-│   │   └── test/
-│   ├── Dockerfile
-│   ├── compose.yaml
-│   ├── pom.xml
-│   └── README.Docker.md
-│
-├── ☸️ kubernetes/                    # Kubernetes Deployment Files
-│   ├── application/                 # Service deployments
-│   │   ├── authentication.yaml      # Auth deployment & service
-│   │   ├── cloud.yaml              # Gateway deployment
-│   │   ├── eureka.yaml             # Eureka deployment
-│   │   ├── notes.yaml              # Notes deployment
-│   │   └── password.yaml           # Password deployment
-│   ├── databases/                   # Database configs
-│   │   ├── cockroachdb.yaml        # CockroachDB StatefulSet
-│   │   └── keydb.yaml              # KeyDB deployment
-│   ├── templates/                   # Reusable templates
-│   │   ├── clusterIP.yaml          # ClusterIP service template
-│   │   ├── deployment.yaml         # Deployment template
-│   │   └── nodePort.yaml           # NodePort service template
-│   └── utils/                       # Utilities
-│       ├── ingress-controller.yaml  # Ingress configuration
-│       ├── kafka.yaml              # Kafka & Zookeeper
-│       ├── secret.yaml             # Secrets (gitignored)
-│       └── secret.yaml.example     # Secrets template
-│
-├── 📄 Documentation Files
-│   ├── README.md                    # This file
-│   ├── CONTRIBUTING.md              # Contribution guidelines
-│   ├── SECURITY.md                  # Security configuration guide
-│   └── .gitignore                   # Git ignore rules
-│
-└── 🔧 Configuration Files
-    └── .gitignore                   # Root gitignore
-```
-
-### 📊 Service Dependencies
-
-```
-Cloud Gateway (8100)
-    └── Eureka Server (8761)
-            ├── Authentication Service (8082)
-            │       ├── PostgreSQL (Auth DB)
-            │       ├── Redis/KeyDB (Cache)
-            │       └── Vault (Secrets)
-            ├── Notes Service (8083)
-            │       ├── PostgreSQL (Notes DB)
-            │       └── Kafka (Events)
-            └── Password Service (8084)
-                    ├── PostgreSQL (Password DB)
-                    └── Kafka (Audit Logs)
-```
-
----
-
-### Using Docker Compose (Recommended for Development)
+### Run with Docker Compose (Recommended)
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd backend
+git clone https://github.com/THISJOWI/THISJOWI-Server.git
+cd THISJOWI-Server
 
-# Start all services
-docker-compose up -d
+# Start infrastructure
+docker-compose up -d postgres redis kafka
 
-# Check service health
-curl http://localhost:8761  # Eureka Dashboard
-curl http://localhost:8100/actuator/health  # API Gateway
+# Start services (in order)
+cd Eureka && ./mvnw spring-boot:run &        # Service discovery
+cd ../Authentication && ./mvnw spring-boot:run &  # Auth service
+cd ../Notes && ./mvnw spring-boot:run &      # Notes service
+cd ../Messages && ./mvnw spring-boot:run &   # Messages service
+cd ../Cloud && ./mvnw spring-boot:run        # API Gateway
 ```
 
-### Using Kubernetes (Production)
+### Access Points
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **API Gateway** | http://localhost:8100 | Main entry point |
+| **Eureka Dashboard** | http://localhost:8761 | Service registry |
+| **Auth API** | http://localhost:8082/swagger-ui.html | Auth docs |
+| **Notes API** | http://localhost:8083/swagger-ui.html | Notes docs |
+
+### Test the API
 
 ```bash
-# Apply secrets (configure first!)
-kubectl apply -f kubernetes/utils/secret.yaml
+# Register a user
+curl -X POST http://localhost:8100/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test@example.com","password":"Test123!"}'
 
-# Deploy infrastructure
-kubectl apply -f kubernetes/databases/
-kubectl apply -f kubernetes/utils/
+# Login and get JWT token
+curl -X POST http://localhost:8100/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test@example.com","password":"Test123!"}'
 
-# Deploy services
-kubectl apply -f kubernetes/application/
-
-# Check deployment status
-kubectl get pods
-kubectl get services
-```
-
-## � Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-### Development Environment
-- [ ] **Java Development Kit (JDK)** 21 or higher
-- [ ] **Maven** 3.8 or higher
-- [ ] **Git** for version control
-- [ ] **IDE** (IntelliJ IDEA, Eclipse, or VS Code)
-
-### Infrastructure Dependencies
-- [ ] **PostgreSQL** 14+ (or CockroachDB for production)
-- [ ] **Redis** 6+ or **KeyDB** (Redis alternative)
-- [ ] **Apache Kafka** 3.0+ (for Password & Notes services)
-- [ ] **HashiCorp Vault** 1.12+ (optional, for secrets management)
-
-### Optional (for containerization)
-- [ ] **Docker** 20.10+
-- [ ] **Docker Compose** 2.0+
-- [ ] **Kubernetes** 1.25+ (for production deployment)
-- [ ] **kubectl** CLI tool
-
-### Verification Commands
-
-```bash
-# Check Java version
-java -version
-# Expected: openjdk version "21" or higher
-
-# Check Maven
-mvn -version
-# Expected: Apache Maven 3.8.x or higher
-
-# Check Docker (optional)
-docker --version
-docker-compose --version
-
-# Check Kubernetes (optional)
-kubectl version --client
-
-# Check PostgreSQL
-psql --version
-
-# Check Redis
-redis-cli --version
+# Create a note (use JWT from login)
+curl -X POST http://localhost:8100/api/v1/notes \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Note","content":"Hello World"}'
 ```
 
 ---
 
-## ⚡ Quick Start
+## 📦 What's Included
 
-### Option 1: Using Docker Compose (Recommended for Development)
+**Services:**
+- 🔐 **Authentication** - JWT auth + OAuth2 (Google, GitHub) + LDAP
+- 📝 **Notes** - Encrypted notes with tags and search
+- 💬 **Messages** - Real-time messaging with Cassandra
+- 🔑 **Password** - Secure password vault
+- 🔔 **OTP** - One-time password generation
+- 🌐 **API Gateway** - Routes all requests
+- 🔍 **Service Discovery** - Eureka registry
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd backend
+**Tech Stack:**
+- **Backend:** Spring Boot 3.2.5, Java 21
+- **Databases:** PostgreSQL, Cassandra, CockroachDB
+- **Cache:** Redis/KeyDB
+- **Messaging:** Apache Kafka
+- **Security:** JWT, OAuth2, AES-256 encryption
+- **DevOps:** Docker, Kubernetes, Helm
 
-# Start Eureka Server first
-cd Eureka
-docker-compose up -d
-echo "Waiting for Eureka to start..."
-sleep 30
-
-# Start other services
-cd ../Authentication
-docker-compose up -d
-
-cd ../Notes
-docker-compose up -d
-
-cd ../Cloud
-docker-compose up -d
-
-cd ../Password
-docker-compose up -d
-
-# Check all services are running
-docker ps
-
-# View logs
-docker-compose logs -f
-```
-
-### Option 2: Using Kubernetes (Production)
-
-```bash
-# Navigate to kubernetes directory
-cd kubernetes
-
-# Configure secrets first!
-cp utils/secret.yaml.example utils/secret.yaml
-# Edit secret.yaml with your actual values
-nano utils/secret.yaml
-
-# Apply secrets
-kubectl apply -f utils/secret.yaml
-
-# Deploy infrastructure
-kubectl apply -f databases/
-kubectl apply -f utils/kafka.yaml
-
-# Deploy services
-kubectl apply -f application/
-
-# Check deployment status
-kubectl get pods
-kubectl get services
-
-# Access Eureka dashboard
-kubectl port-forward svc/eureka-service 8761:8761
-# Open http://localhost:8761 in browser
-```
-
-### Option 3: Manual Local Development
-
-```bash
-# Start services in order
-
-# Terminal 1: Eureka Server
-cd Eureka
-./mvnw spring-boot:run
-
-# Terminal 2: Authentication Service (wait 30s for Eureka)
-cd Authentication
-./mvnw spring-boot:run
-
-# Terminal 3: Notes Service
-cd Notes
-./mvnw spring-boot:run
-
-# Terminal 4: Password Service
-cd Password
-./mvnw spring-boot:run
-
-# Terminal 5: Cloud Gateway
-cd Cloud
-./mvnw spring-boot:run
-```
-
-### Quick Health Check
-
-```bash
-# Check Eureka Dashboard
-curl http://localhost:8761
-
-# Check Gateway
-curl http://localhost:8100/actuator/health
-
-# Check Auth Service
-curl http://localhost:8082/actuator/health
-
-# Check Notes Service
-curl http://localhost:8083/actuator/health
-
-# Check Password Service
-curl http://localhost:8084/actuator/health
-```
 
 ---
 
-## 🔧 Installation
+## 🏗️ Architecture
 
-### 1️⃣ Clone the Repository
-
-```bash
-git clone https://github.com/THISJowi/THISJOWI-backend.git
-cd THISJOWI-backend
+```
+Client → API Gateway (8100) → Eureka (8761) → Microservices
+                                          │
+                                          ├─ Auth (8082) → PostgreSQL + Redis
+                                          ├─ Notes (8083) → PostgreSQL + Kafka
+                                          ├─ Messages (8085) → Cassandra + Kafka
+                                          ├─ Password (8084) → PostgreSQL
+                                          └─ OTP (8086) → Redis
 ```
 
-### 2️⃣ Configure Environment Variables
+**Flow:** Client requests hit the Gateway → Gateway discovers services via Eureka → Routes to appropriate microservice → Service handles logic & persists to database
 
-#### Create Configuration Files
+---
 
-```bash
-# Copy secret template
-cp kubernetes/utils/secret.yaml.example kubernetes/utils/secret.yaml
+## ⚙️ Configuration
 
-# Edit with your actual values
-nano kubernetes/utils/secret.yaml
-```
 
-#### Required Configurations
+### Environment Variables
 
-**Database Settings:**
+Create a `.env` file or configure in `application.yaml`:
+
 ```yaml
-db-host: "your-postgresql-host"
-db-port: "5432"
-db-username: "your-db-user"
-db-password: "your-secure-password"
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Kafka
+KAFKA_HOST=localhost:9092
+
+# JWT
+JWT_SECRET=your-secret-key-min-32-characters
 ```
 
-**Redis/KeyDB:**
-```yaml
-redis-host: "your-redis-host"
-redis-port: "6379"
-```
-
-**Kafka:**
-```yaml
-kafka-host: "your-kafka-host"
-kafka-port: "9092"
-```
-
-**Security:**
-```yaml
-jwt-secret: "your-super-secret-jwt-key-min-32-chars"
-vault-host: "your-vault-host"
-vault-token: "your-vault-token"
-```
-
-**Generate Secure JWT Secret:**
+Generate JWT secret:
 ```bash
-# Linux/Mac/Git Bash
 openssl rand -base64 32
-
-# PowerShell
--join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | ForEach-Object {[char]$_})
 ```
 
-### 3️⃣ Build All Services
-
-```bash
-# Build all services at once
-./mvnw clean install -DskipTests
-
-# Or build individually
-cd Authentication && ./mvnw clean package
-cd ../Notes && ./mvnw clean package
-cd ../Password && ./mvnw clean package
-cd ../Cloud && ./mvnw clean package
-cd ../Eureka && ./mvnw clean package
-```
-
-### 4️⃣ Setup Infrastructure
-
-<details>
-<summary><b>Option A: Using Docker Compose</b></summary>
-
-```bash
-# Start PostgreSQL
-docker run -d \
-  --name postgres \
-  -e POSTGRES_PASSWORD=yourpassword \
-  -p 5432:5432 \
-  postgres:14
-
-# Start Redis
-docker run -d \
-  --name redis \
-  -p 6379:6379 \
-  redis:latest
-
-# Start Kafka (with Zookeeper)
-docker-compose -f kubernetes/utils/kafka-docker-compose.yaml up -d
-```
-
-</details>
-
-<details>
-<summary><b>Option B: Manual Installation</b></summary>
-
-Follow official installation guides:
-- [PostgreSQL](https://www.postgresql.org/download/)
-- [Redis](https://redis.io/docs/getting-started/)
-- [Apache Kafka](https://kafka.apache.org/quickstart)
-
-</details>
 
 ---
 
-## 🎮 Running the Application
+## 🚀 Kubernetes Deployment
 
-### Start All Services (Recommended Order)
+```bash
+# 1. Configure secrets
+cp infrastructure/k8s/utils/secret.example.yaml infrastructure/k8s/utils/secret.yaml
+nano infrastructure/k8s/utils/secret.yaml  # Edit with your values
 
-#### 1️⃣ Start Eureka Server (Service Discovery)
+# 2. Deploy infrastructure
+kubectl apply -f infrastructure/k8s/databases/
+kubectl apply -f infrastructure/k8s/utils/
+
+# 3. Deploy services
+kubectl apply -f infrastructure/k8s/application/
+
+# 4. Check status
+kubectl get pods
+kubectl get services
+
+# 5. Access services
+kubectl port-forward svc/gateway-service 8100:8100
+kubectl port-forward svc/eureka-service 8761:8761
+```
+
+
+## 🐞 Troubleshooting
+
+**Service not registering with Eureka:**
+- Wait 30-60s for registration
+- Check Eureka is running: `curl http://localhost:8761`
+- Verify `eureka.client.serviceUrl` in `application.yaml`
+
+**Database connection failed:**
+- Check PostgreSQL is running: `docker ps | grep postgres`
+- Verify credentials in `.env` or `secret.yaml`
+- Test connection: `psql -h localhost -U your_user`
+
+**JWT validation failed (401 errors):**
+- Verify JWT secret matches across all services
+- Check token format: `Authorization: Bearer <token>`
+- Verify Redis cache is accessible
+
+**Port already in use:**
+```bash
+# Find process
+lsof -i :8082  # Mac/Linux
+netstat -ano | findstr :8082  # Windows
+```
+
+
+---
+
+## 📚 Documentation & Support
+
+- **Swagger API Docs:** http://localhost:8082/swagger-ui.html (Auth), http://localhost:8083/swagger-ui.html (Notes)
+- **GitHub Issues:** Report bugs and request features
+- **Website:** [thisjowi.uk](https://thisjowi.uk) - Complete documentation and tutorials
+
+---
+
+## 📝 License
+
+Proprietary License - See [LICENCE.md](LICENCE.md). Commercial use within your organization allowed. Redistribution requires authorization.
+
+---
+
+<div align="center">
+
+**Made with ❤️ by THISJOWI**
+
+[🌐 Website](https://thisjowi.uk) • [🐛 Issues](../../issues) • [🤝 Contributing](CONTRIBUTING.md)
+
+</div>
 
 ```bash
 cd Eureka
