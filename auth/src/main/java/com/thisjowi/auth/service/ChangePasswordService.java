@@ -13,7 +13,8 @@ import java.util.Map;
 
 /**
  * Service for handling password change operations.
- * Validates current password, verifies new password confirmation, and updates user password.
+ * Validates current password, verifies new password confirmation, and updates
+ * user password.
  */
 @Service
 public class ChangePasswordService {
@@ -25,8 +26,8 @@ public class ChangePasswordService {
     private final JwtUtil jwtUtil;
 
     public ChangePasswordService(UserService userService,
-                                 PasswordEncoder passwordEncoder,
-                                 JwtUtil jwtUtil) {
+            PasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
@@ -35,8 +36,9 @@ public class ChangePasswordService {
     /**
      * Change password for a user authenticated via JWT token.
      * 
-     * @param token JWT token
-     * @param request ChangePasswordRequest containing new password (current password is optional)
+     * @param token   JWT token
+     * @param request ChangePasswordRequest containing new password (current
+     *                password is optional)
      * @return Map with success status and message
      * @throws IllegalArgumentException if token is invalid or password change fails
      */
@@ -61,14 +63,23 @@ public class ChangePasswordService {
         try {
             // Get user by ID (most reliable method)
             User user = userService.getUserById(userId);
-            
+
+            // Prevent password change for LDAP users
+            if (user.getLdapUsername() != null && !user.getLdapUsername().isEmpty()) {
+                log.warn("Blocked password change attempt for LDAP user: {} (ID: {})", user.getEmail(), userId);
+                response.put("success", false);
+                response.put("message",
+                        "Password change is not allowed for LDAP users. Please contact your organization administrator.");
+                return response;
+            }
+
             String email = user.getEmail();
             log.info("Processing password change for user: {} (ID: {})", email, userId);
 
             // If current password is provided, verify it
             if (request.getCurrentPassword() != null && !request.getCurrentPassword().isEmpty()) {
                 log.debug("Verifying current password for user: {}", email);
-                
+
                 // Validate new password is not the same as current password
                 if (request.getCurrentPassword().equals(request.getNewPassword())) {
                     log.warn("User {} tried to use same password for new password", email);
@@ -76,9 +87,10 @@ public class ChangePasswordService {
                     response.put("message", "New password cannot be the same as current password");
                     return response;
                 }
-                
+
                 // Verify current password using PasswordEncoder
-                if (user.getPassword() == null || !passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                if (user.getPassword() == null
+                        || !passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
                     log.warn("Current password mismatch for user: {}", email);
                     response.put("success", false);
                     response.put("message", "Current password is incorrect");
@@ -133,32 +145,36 @@ public class ChangePasswordService {
         boolean hasDigit = false;
         boolean hasSpecial = false;
         String specialChars = "!@#$%^&*()_+-=[]{}; ':\"\\|,.<>?/";
-        
+
         for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) hasUpper = true;
-            else if (Character.isLowerCase(c)) hasLower = true;
-            else if (Character.isDigit(c)) hasDigit = true;
-            else if (specialChars.indexOf(c) >= 0) hasSpecial = true;
+            if (Character.isUpperCase(c))
+                hasUpper = true;
+            else if (Character.isLowerCase(c))
+                hasLower = true;
+            else if (Character.isDigit(c))
+                hasDigit = true;
+            else if (specialChars.indexOf(c) >= 0)
+                hasSpecial = true;
         }
-        
+
         if (!hasUpper) {
             result.put("isValid", false);
             result.put("error", "Password must contain at least one uppercase letter");
             return result;
         }
-        
+
         if (!hasLower) {
             result.put("isValid", false);
             result.put("error", "Password must contain at least one lowercase letter");
             return result;
         }
-        
+
         if (!hasDigit) {
             result.put("isValid", false);
             result.put("error", "Password must contain at least one digit");
             return result;
         }
-        
+
         if (!hasSpecial) {
             result.put("isValid", false);
             result.put("error", "Password must contain at least one special character (!@#$%^&*...)");

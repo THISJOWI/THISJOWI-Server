@@ -34,7 +34,6 @@ import com.thisjowi.auth.dto.ChangePasswordRequest;
 import com.thisjowi.auth.dto.OrganizationRequest;
 import com.thisjowi.auth.dto.OrganizationResponse;
 import com.thisjowi.auth.dto.LdapLoginRequest;
-import com.thisjowi.auth.dto.LdapLoginResponse;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.thisjowi.auth.entity.User;
@@ -932,6 +931,14 @@ public class AuthRestController {
             User user;
             try {
                 user = userService.getUserByEmail(email);
+
+                // Prevent password reset for LDAP users
+                if (user.getLdapUsername() != null && !user.getLdapUsername().isEmpty()) {
+                    log.warn("Blocked forgot password attempt for LDAP user: {}", email);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("success", false, "message",
+                                    "Password reset is not allowed for LDAP users. Please contact your organization administrator."));
+                }
             } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
                 // User not found, return success to prevent enumeration
                 return ResponseEntity
@@ -994,6 +1001,14 @@ public class AuthRestController {
 
         try {
             User user = userService.getUserByEmail(email);
+
+            // Prevent password reset for LDAP users
+            if (user.getLdapUsername() != null && !user.getLdapUsername().isEmpty()) {
+                log.warn("Blocked reset password attempt for LDAP user: {}", email);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Password reset is not allowed for LDAP users."));
+            }
+
             user.setPassword(passwordEncoder.encode(newPassword));
             userService.saveUser(user);
 
