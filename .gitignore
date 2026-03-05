@@ -12,6 +12,8 @@ server.log
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 
 # Carpetas de secretos
 secrets/
@@ -20,6 +22,14 @@ credentials/
 # Build artifacts
 **/target/
 **/build/
+**/dist/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
 # IDE
 .idea/
@@ -36,19 +46,13 @@ Thumbs.db
 # CERTIFICADOS Y CLAVES PRIVADAS - NUNCA SUBIR A GIT
 # =============================================================
 
-# Claves privadas (cualquier ubicación)
+# Claves privadas generales
 **/*.key
 **/*.pem
 **/*.p12
 **/*.pfx
 
-# Certificados (opcional ignorar - descomentar si no se quieren publicar)
-# **/*.crt
-# **/*.cert
-
-# =============================================================
-# ARCHIVOS TEMPORALES / BACKUPS
-# =============================================================
+# Archivos temporales / BACKUPS
 *.bak
 *.tmp
 *.swp
