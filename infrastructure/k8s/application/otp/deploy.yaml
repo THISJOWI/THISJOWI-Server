@@ -11,6 +11,9 @@ spec:
     metadata:
       labels:
         app: otp
+      annotations:
+        linkerd.io/inject: enabled
+        config.linkerd.io/proxy-await: "enabled"
     spec:
       containers:
         - name: otp
@@ -25,7 +28,7 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-          
+
           env:
             - name: DB_PORT
               valueFrom:

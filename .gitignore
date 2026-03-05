@@ -1,6 +1,4 @@
 # Archivos de secretos - NO SUBIR A GIT
-kubernetes/utils/secret.yaml
-infrastructure/k8s/utils/secret.yaml
 kubernetes/templates/
 
 # Logs y archivos temporales
@@ -33,3 +31,25 @@ credentials/
 # OS
 .DS_Store
 Thumbs.db
+
+# =============================================================
+# CERTIFICADOS Y CLAVES PRIVADAS - NUNCA SUBIR A GIT
+# =============================================================
+
+# Claves privadas (cualquier ubicación)
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+
+# Certificados (opcional ignorar - descomentar si no se quieren publicar)
+# **/*.crt
+# **/*.cert
+
+# =============================================================
+# ARCHIVOS TEMPORALES / BACKUPS
+# =============================================================
+*.bak
+*.tmp
+*.swp
+*~

@@ -2,9 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth
-  annotations:
-    linkerd.io/inject: enabled
-    onfig.linkerd.io/proxy-await: "enabled"
 spec:
   replicas: 1
   selector:
@@ -14,10 +11,13 @@ spec:
     metadata:
       labels:
         app: auth
+      annotations:
+        linkerd.io/inject: enabled
+        config.linkerd.io/proxy-await: "enabled"
     spec:
       containers:
         - name: auth
-          image: thsjowi/auth:1.2.0
+          image: thsjowi/auth:1.3.9
           imagePullPolicy: Always
           ports:
             - containerPort: 8082
@@ -117,4 +117,3 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: github-client-secret
-
