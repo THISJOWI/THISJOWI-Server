@@ -48,7 +48,7 @@ La aplicación estará disponible en `http://localhost:8080`
 
 #### 1. LDAP Login
 ```http
-POST /api/v1/auth/ldap/login
+POST /v1/auth/ldap/login
 Content-Type: application/json
 
 {
@@ -72,7 +72,7 @@ Content-Type: application/json
 
 #### 2. Crear Organización
 ```http
-POST /api/v1/auth/organizations
+POST /v1/auth/organizations
 Content-Type: application/json
 
 {
@@ -104,7 +104,7 @@ Content-Type: application/json
 
 #### 3. Obtener Organización
 ```http
-GET /api/v1/auth/organizations/{domain}
+GET /v1/auth/organizations/{domain}
 ```
 
 **Response (200 OK)**
@@ -114,7 +114,7 @@ GET /api/v1/auth/organizations/{domain}
 
 #### 4. Actualizar Organización
 ```http
-PUT /api/v1/auth/organizations/{orgId}
+PUT /v1/auth/organizations/{orgId}
 Content-Type: application/json
 
 {
@@ -239,7 +239,7 @@ chmod +x ldap-test-examples.sh
 ### O ejecutar comandos curl manualmente
 ```bash
 # Crear organización
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "test.com",
@@ -251,7 +251,7 @@ curl -X POST http://localhost:8080/api/v1/auth/organizations \
   }'
 
 # Login LDAP
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "test.com",

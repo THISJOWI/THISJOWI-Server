@@ -36,7 +36,7 @@ Se añadieron los siguientes campos a la tabla usuarios:
 ## API Endpoints
 
 ### 1. LDAP Login
-**POST** `/api/v1/auth/ldap/login`
+**POST** `/v1/auth/ldap/login`
 
 Request:
 ```json
@@ -60,7 +60,7 @@ Response:
 ```
 
 ### 2. Create Organization
-**POST** `/api/v1/auth/organizations`
+**POST** `/v1/auth/organizations`
 
 Request:
 ```json
@@ -93,7 +93,7 @@ Response:
 ```
 
 ### 3. Get Organization
-**GET** `/api/v1/auth/organizations/{domain}`
+**GET** `/v1/auth/organizations/{domain}`
 
 Response:
 ```json
@@ -112,7 +112,7 @@ Response:
 ```
 
 ### 4. Update Organization
-**PUT** `/api/v1/auth/organizations/{orgId}`
+**PUT** `/v1/auth/organizations/{orgId}`
 
 Request:
 ```json

@@ -3,9 +3,9 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 
-@Controller('/api/v1/messages')
+@Controller('/v1/messages')
 export class MessagesController {
-  private readonly AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth/api/v1/auth';
+  private readonly AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth/v1/auth';
 
   constructor(private readonly messagesService: MessagesService) {
     console.log(`🔐 Messages Service configured with AUTH_SERVICE_URL: ${this.AUTH_SERVICE_URL}`);

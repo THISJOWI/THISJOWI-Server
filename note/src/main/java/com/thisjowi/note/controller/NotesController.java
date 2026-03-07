@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/notes")
+@RequestMapping("/v1/notes")
 public class NotesController {
 
     @Autowired
@@ -28,7 +28,9 @@ public class NotesController {
 
     /**
      * Extracts the userId from the JWT token in the Authorization header
-     * @param authHeader the value of the Authorization header (ex: "Bearer token...")
+     * 
+     * @param authHeader the value of the Authorization header (ex: "Bearer
+     *                   token...")
      * @return the userId of the authenticated user, or null if invalid
      */
     private Long extractUserIdFromToken(String authHeader) {

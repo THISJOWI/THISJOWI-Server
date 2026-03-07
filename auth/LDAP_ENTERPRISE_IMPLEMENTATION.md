@@ -187,7 +187,7 @@ LdapAdminDashboard (NUEVO - Recomendado)
    │
 3. Flutter extrae dominio: empresa.com
    │
-4. POST /api/v1/auth/ldap/login
+4. POST /v1/auth/ldap/login
    ├── domain: "empresa.com"
    ├── username: "jdoe"
    └── password: "password123"
@@ -220,7 +220,7 @@ LdapAdminDashboard (NUEVO - Recomendado)
    │
 2. Ingresa datos del servidor LDAP y hace click en "Probar Conexión"
    │
-3. POST /api/v1/auth/ldap/test-connection
+3. POST /v1/auth/ldap/test-connection
    ├── ldapUrl: "ldap://ldap.example.com:389"
    ├── ldapBaseDn: "dc=example,dc=com"
    ├── ldapBindDn: "cn=admin,dc=example,dc=com"
@@ -272,7 +272,7 @@ LdapAdminDashboard (NUEVO - Recomendado)
 ```
 1. Admin hace click en "Sincronizar Ahora" en dashboard
    │
-2. POST /api/v1/auth/ldap/sync/{domain}
+2. POST /v1/auth/ldap/sync/{domain}
    │
 3. Spring Boot: Ejecuta syncOrganizationUsers()
    │
@@ -394,7 +394,7 @@ export LDAP_ENCRYPTION_KEY="h7K3m9nX2w5qZpLvR8aB1cD4eF6gH9j0..."
 ### 1. Autenticación LDAP (Existente)
 
 ```http
-POST /api/v1/auth/ldap/login
+POST /v1/auth/ldap/login
 Content-Type: application/json
 
 {
@@ -423,7 +423,7 @@ Response 401:
 ### 2. Test LDAP Connection (NUEVO)
 
 ```http
-POST /api/v1/auth/ldap/test-connection
+POST /v1/auth/ldap/test-connection
 Content-Type: application/json
 
 {
@@ -457,7 +457,7 @@ Response 400 (Failure):
 ### 3. Sincronización Manual (NUEVO)
 
 ```http
-POST /api/v1/auth/ldap/sync/{domain}
+POST /v1/auth/ldap/sync/{domain}
 
 Response 200:
 {
@@ -478,7 +478,7 @@ Response 404:
 ### 4. Estado de Sincronización (NUEVO)
 
 ```http
-GET /api/v1/auth/ldap/sync-status/{domain}
+GET /v1/auth/ldap/sync-status/{domain}
 
 Response 200:
 {
@@ -493,7 +493,7 @@ Response 200:
 ### 5. Crear/Actualizar Organización (Existente)
 
 ```http
-POST /api/v1/auth/organizations
+POST /v1/auth/organizations
 Content-Type: application/json
 
 {
@@ -685,7 +685,7 @@ volumes:
 5. Usuarios no se sincronizan
    → Verificar cron job está ejecutándose
    → Revisar logs de LdapUserSyncService
-   → Trigger manual: POST /api/v1/auth/ldap/sync/{domain}
+   → Trigger manual: POST /v1/auth/ldap/sync/{domain}
 ```
 
 ### Checklist de Implementación
@@ -721,7 +721,7 @@ Documentación:
 ### Crear Organización (Admin)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "acme.com",
@@ -739,7 +739,7 @@ curl -X POST http://localhost:8080/api/v1/auth/organizations \
 ### Test Connection (Admin)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
+curl -X POST http://localhost:8080/v1/auth/ldap/test-connection \
   -H "Content-Type: application/json" \
   -d '{
     "ldapUrl": "ldap://ldap.acme.com:389",
@@ -752,7 +752,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
 ### LDAP Login (Usuario)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "acme.com",
@@ -764,7 +764,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
 ### Sincronización Manual
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/ldap/sync/acme.com \
+curl -X POST http://localhost:8080/v1/auth/ldap/sync/acme.com \
   -H "Authorization: Bearer {token}"
 ```
 

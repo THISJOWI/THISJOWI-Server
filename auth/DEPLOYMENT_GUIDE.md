@@ -29,10 +29,10 @@ Se ha implementado exitosamente un sistema completo de autenticación LDAP con s
 
 ### 4. **Controllers** ✅
 - 4 nuevos endpoints en `AuthRestController`:
-  - `POST /api/v1/auth/ldap/login`
-  - `POST /api/v1/auth/organizations`
-  - `GET /api/v1/auth/organizations/{domain}`
-  - `PUT /api/v1/auth/organizations/{orgId}`
+  - `POST /v1/auth/ldap/login`
+  - `POST /v1/auth/organizations`
+  - `GET /v1/auth/organizations/{domain}`
+  - `PUT /v1/auth/organizations/{orgId}`
 
 ### 5. **Database Migrations** ✅
 - `V2__create_organizations_table.sql` - Tabla de organizaciones
@@ -54,7 +54,7 @@ cd /Users/joel/proyects/server/auth
 
 ### 2. Crear una organización con LDAP
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "mycompany.com",
@@ -85,7 +85,7 @@ Response:
 
 ### 3. Autenticar usuario LDAP
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "mycompany.com",
@@ -112,10 +112,10 @@ Response:
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| POST | `/api/v1/auth/ldap/login` | Autenticar usuario LDAP |
-| POST | `/api/v1/auth/organizations` | Crear organización |
-| GET | `/api/v1/auth/organizations/{domain}` | Obtener organización |
-| PUT | `/api/v1/auth/organizations/{orgId}` | Actualizar organización |
+| POST | `/v1/auth/ldap/login` | Autenticar usuario LDAP |
+| POST | `/v1/auth/organizations` | Crear organización |
+| GET | `/v1/auth/organizations/{domain}` | Obtener organización |
+| PUT | `/v1/auth/organizations/{orgId}` | Actualizar organización |
 
 ---
 

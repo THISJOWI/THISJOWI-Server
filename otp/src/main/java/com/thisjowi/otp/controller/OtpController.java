@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/otp")
+@RequestMapping("/v1/otp")
 public class OtpController {
 
     private final OtpService otpService;
@@ -40,7 +40,8 @@ public class OtpController {
     }
 
     @GetMapping
-    public ResponseEntity<List<otp>> getAllOtps(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<List<otp>> getAllOtps(
+            @RequestHeader(value = "Authorization", required = false) String token) {
         Long userId = extractUserIdFromToken(token);
         if (userId == null) {
             return ResponseEntity.status(401).build();
@@ -58,24 +59,26 @@ public class OtpController {
     public ResponseEntity<otp> createOtp(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestBody CreateOtpRequest request) {
-        
+
         Long userId = extractUserIdFromToken(token);
         if (userId == null) {
             return ResponseEntity.status(401).build();
         }
-        
+
         if (request.secret != null && !request.secret.isEmpty()) {
-             // Decrypt secret
-             request.secret = decrypt(request.secret);
-             
-             // Log masked secret for debugging
-             String masked = request.secret.length() > 4 ? "..." + request.secret.substring(request.secret.length() - 4) : "***";
-             System.out.println("Received createOtp request for user " + userId + " with secret: " + masked);
+            // Decrypt secret
+            request.secret = decrypt(request.secret);
+
+            // Log masked secret for debugging
+            String masked = request.secret.length() > 4 ? "..." + request.secret.substring(request.secret.length() - 4)
+                    : "***";
+            System.out.println("Received createOtp request for user " + userId + " with secret: " + masked);
         } else {
-             System.out.println("Received createOtp request for user " + userId + " without secret");
+            System.out.println("Received createOtp request for user " + userId + " without secret");
         }
-        
-        return ResponseEntity.ok(otpService.createOtp(userId, request.name, request.type, request.secret, request.issuer, request.digits, request.period, request.algorithm));
+
+        return ResponseEntity.ok(otpService.createOtp(userId, request.name, request.type, request.secret,
+                request.issuer, request.digits, request.period, request.algorithm));
     }
 
     public static class CreateOtpRequest {
@@ -113,28 +116,29 @@ public class OtpController {
             if (!encryptedText.matches("^[A-Za-z0-9+/=]+$")) {
                 return encryptedText;
             }
-            
+
             byte[] combined = Base64.getDecoder().decode(encryptedText);
-            
+
             // Minimum length check (IV is 16 bytes)
             if (combined.length < 16) {
                 return encryptedText;
             }
-            
+
             // Extract IV (first 16 bytes)
             byte[] iv = new byte[16];
             System.arraycopy(combined, 0, iv, 0, 16);
-            
+
             // Extract ciphertext
             byte[] ciphertext = new byte[combined.length - 16];
             System.arraycopy(combined, 16, ciphertext, 0, ciphertext.length);
-            
+
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
-            SecretKeySpec keySpec = new SecretKeySpec(encryptionKey.substring(0, 32).getBytes(StandardCharsets.UTF_8), "AES");
-            
+            SecretKeySpec keySpec = new SecretKeySpec(encryptionKey.substring(0, 32).getBytes(StandardCharsets.UTF_8),
+                    "AES");
+
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-            
+
             byte[] original = cipher.doFinal(ciphertext);
             return new String(original, StandardCharsets.UTF_8);
         } catch (Exception e) {

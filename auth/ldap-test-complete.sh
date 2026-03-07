@@ -36,10 +36,10 @@ print_result() {
 # ============================================
 echo ""
 echo -e "${YELLOW}1. CREATE ORGANIZATION${NC}"
-echo "POST /api/v1/auth/organizations"
+echo "POST /v1/auth/organizations"
 echo ""
 
-CREATE_ORG_RESPONSE=$(curl -s -X POST "$BASE_URL/api/v1/auth/organizations" \
+CREATE_ORG_RESPONSE=$(curl -s -X POST "$BASE_URL/v1/auth/organizations" \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "acme.com",
@@ -63,10 +63,10 @@ echo ""
 # ============================================
 echo ""
 echo -e "${YELLOW}2. TEST LDAP CONNECTION${NC}"
-echo "POST /api/v1/auth/ldap/test-connection"
+echo "POST /v1/auth/ldap/test-connection"
 echo ""
 
-TEST_CONNECTION=$(curl -s -X POST "$BASE_URL/api/v1/auth/ldap/test-connection" \
+TEST_CONNECTION=$(curl -s -X POST "$BASE_URL/v1/auth/ldap/test-connection" \
   -H "Content-Type: application/json" \
   -d '{
     "ldapUrl": "ldap://ldap.acme.com:389",
@@ -91,10 +91,10 @@ echo ""
 # ============================================
 echo ""
 echo -e "${YELLOW}3. GET ORGANIZATION${NC}"
-echo "GET /api/v1/auth/organizations/{domain}"
+echo "GET /v1/auth/organizations/{domain}"
 echo ""
 
-GET_ORG=$(curl -s -X GET "$BASE_URL/api/v1/auth/organizations/acme.com")
+GET_ORG=$(curl -s -X GET "$BASE_URL/v1/auth/organizations/acme.com")
 echo "$GET_ORG" | jq .
 echo ""
 
@@ -104,10 +104,10 @@ echo ""
 if [ ! -z "$ORG_ID" ]; then
     echo ""
     echo -e "${YELLOW}4. UPDATE ORGANIZATION${NC}"
-    echo "PUT /api/v1/auth/organizations/{orgId}"
+    echo "PUT /v1/auth/organizations/{orgId}"
     echo ""
 
-    UPDATE_ORG=$(curl -s -X PUT "$BASE_URL/api/v1/auth/organizations/$ORG_ID" \
+    UPDATE_ORG=$(curl -s -X PUT "$BASE_URL/v1/auth/organizations/$ORG_ID" \
       -H "Content-Type: application/json" \
       -d '{
         "ldapUrl": "ldap://ldap.acme.com:389",
@@ -128,10 +128,10 @@ fi
 # ============================================
 echo ""
 echo -e "${YELLOW}5. LDAP LOGIN${NC}"
-echo "POST /api/v1/auth/ldap/login"
+echo "POST /v1/auth/ldap/login"
 echo ""
 
-LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/api/v1/auth/ldap/login" \
+LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/v1/auth/ldap/login" \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "acme.com",
@@ -148,10 +148,10 @@ echo ""
 # ============================================
 echo ""
 echo -e "${YELLOW}6. LDAP LOGIN - Invalid Credentials${NC}"
-echo "POST /api/v1/auth/ldap/login"
+echo "POST /v1/auth/ldap/login"
 echo ""
 
-INVALID_LOGIN=$(curl -s -X POST "$BASE_URL/api/v1/auth/ldap/login" \
+INVALID_LOGIN=$(curl -s -X POST "$BASE_URL/v1/auth/ldap/login" \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "acme.com",
@@ -167,10 +167,10 @@ echo ""
 # ============================================
 echo ""
 echo -e "${YELLOW}7. MANUAL USER SYNCHRONIZATION${NC}"
-echo "POST /api/v1/auth/ldap/sync/{domain}"
+echo "POST /v1/auth/ldap/sync/{domain}"
 echo ""
 
-SYNC_RESPONSE=$(curl -s -X POST "$BASE_URL/api/v1/auth/ldap/sync/acme.com" \
+SYNC_RESPONSE=$(curl -s -X POST "$BASE_URL/v1/auth/ldap/sync/acme.com" \
   ${AUTH_TOKEN:+-H "Authorization: Bearer $AUTH_TOKEN"})
 
 echo "$SYNC_RESPONSE" | jq .
@@ -181,10 +181,10 @@ echo ""
 # ============================================
 echo ""
 echo -e "${YELLOW}8. GET SYNC STATUS${NC}"
-echo "GET /api/v1/auth/ldap/sync-status/{domain}"
+echo "GET /v1/auth/ldap/sync-status/{domain}"
 echo ""
 
-SYNC_STATUS=$(curl -s -X GET "$BASE_URL/api/v1/auth/ldap/sync-status/acme.com" \
+SYNC_STATUS=$(curl -s -X GET "$BASE_URL/v1/auth/ldap/sync-status/acme.com" \
   ${AUTH_TOKEN:+-H "Authorization: Bearer $AUTH_TOKEN"})
 
 echo "$SYNC_STATUS" | jq .
@@ -195,10 +195,10 @@ echo ""
 # ============================================
 echo ""
 echo -e "${YELLOW}9. TEST USER AUTHENTICATION${NC}"
-echo "POST /api/v1/auth/ldap/test-user-auth"
+echo "POST /v1/auth/ldap/test-user-auth"
 echo ""
 
-TEST_USER_AUTH=$(curl -s -X POST "$BASE_URL/api/v1/auth/ldap/test-user-auth" \
+TEST_USER_AUTH=$(curl -s -X POST "$BASE_URL/v1/auth/ldap/test-user-auth" \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "acme.com",
@@ -234,7 +234,7 @@ echo ""
 
 cat << 'EOF'
 # 1. Test connection to a different LDAP server
-curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
+curl -X POST http://localhost:8080/v1/auth/ldap/test-connection \
   -H "Content-Type: application/json" \
   -d '{
     "ldapUrl": "ldaps://ldap.company.org:636",
@@ -244,7 +244,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
   }'
 
 # 2. Create organization with LDAPS (SSL)
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "secure.com",
@@ -259,7 +259,7 @@ curl -X POST http://localhost:8080/api/v1/auth/organizations \
   }'
 
 # 3. Login with different domain
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "secure.com",
@@ -268,7 +268,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
   }'
 
 # 4. Check all organizations
-curl http://localhost:8080/api/v1/auth/organizations
+curl http://localhost:8080/v1/auth/organizations
 
 # 5. Get server health
 curl http://localhost:8080/actuator/health | jq .
@@ -277,11 +277,11 @@ curl http://localhost:8080/actuator/health | jq .
 curl http://localhost:8080/actuator/metrics | jq .
 
 # 7. Trigger sync with authentication
-curl -X POST http://localhost:8080/api/v1/auth/ldap/sync/acme.com \
+curl -X POST http://localhost:8080/v1/auth/ldap/sync/acme.com \
   -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
 
 # 8. Test with advanced LDAP filters (Active Directory)
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "ad.company.com",
@@ -296,7 +296,7 @@ curl -X POST http://localhost:8080/api/v1/auth/organizations \
   }'
 
 # 9. Test with OpenLDAP filters
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "openldap.org",

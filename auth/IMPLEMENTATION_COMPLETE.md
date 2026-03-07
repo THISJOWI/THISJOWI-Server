@@ -62,10 +62,10 @@ Seguridad:
 
 **LdapAdminController.java** (200 líneas)
 ```java
-✓ POST /api/v1/auth/ldap/test-connection      → Test config
-✓ POST /api/v1/auth/ldap/sync/{domain}        → Sync manual
-✓ GET /api/v1/auth/ldap/sync-status/{domain}  → Estado sync
-✓ POST /api/v1/auth/ldap/test-user-auth       → Test auth usuario
+✓ POST /v1/auth/ldap/test-connection      → Test config
+✓ POST /v1/auth/ldap/sync/{domain}        → Sync manual
+✓ GET /v1/auth/ldap/sync-status/{domain}  → Estado sync
+✓ POST /v1/auth/ldap/test-user-auth       → Test auth usuario
 
 Respuestas JSON detalladas
 Manejo de errores específicos
@@ -183,7 +183,7 @@ SELECT * FROM organizations WHERE domain = 'empresa.com'
 ```
 1. Usuario ingresa credenciales
 2. Flutter extrae dominio
-3. POST /api/v1/auth/ldap/login
+3. POST /v1/auth/ldap/login
 4. Spring Boot busca organización
 5. Crea LdapTemplate dinámico
 6. Intenta "bind" contra LDAP
@@ -256,19 +256,19 @@ Diariamente a las 2 AM:
 ## 📊 API Endpoints Nuevos
 
 ```
-POST /api/v1/auth/ldap/test-connection
+POST /v1/auth/ldap/test-connection
 ├─ Request: { ldapUrl, ldapBaseDn, ldapBindDn, ldapBindPassword }
 └─ Response: { success, configValid, credentialsValid, errors }
 
-POST /api/v1/auth/ldap/sync/{domain}
+POST /v1/auth/ldap/sync/{domain}
 ├─ Request: Authorization: Bearer {token}
 └─ Response: { success, foundInLdap, syncedCount, deactivatedCount }
 
-GET /api/v1/auth/ldap/sync-status/{domain}
+GET /v1/auth/ldap/sync-status/{domain}
 ├─ Request: Authorization: Bearer {token}
 └─ Response: { lastSyncTime, nextSyncTime, syncInterval }
 
-POST /api/v1/auth/ldap/test-user-auth
+POST /v1/auth/ldap/test-user-auth
 ├─ Request: { domain, username, password }
 └─ Response: { success, message }
 ```
@@ -377,7 +377,7 @@ Testing:
 
 4. **Crear Primera Organización**
    ```bash
-   curl -X POST http://localhost:8080/api/v1/auth/organizations \
+   curl -X POST http://localhost:8080/v1/auth/organizations \
      -H "Content-Type: application/json" \
      -d '{
        "domain": "yourcompany.com",
@@ -418,7 +418,7 @@ Testing:
 
 ```bash
 # 1. Test connection
-curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
+curl -X POST http://localhost:8080/v1/auth/ldap/test-connection \
   -H "Content-Type: application/json" \
   -d '{
     "ldapUrl": "ldap://ldap.example.com:389",
@@ -426,7 +426,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
   }'
 
 # 2. LDAP login
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "example.com",
@@ -435,7 +435,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
   }'
 
 # 3. Manual sync
-curl -X POST http://localhost:8080/api/v1/auth/ldap/sync/example.com \
+curl -X POST http://localhost:8080/v1/auth/ldap/sync/example.com \
   -H "Authorization: Bearer {token}"
 ```
 

@@ -81,7 +81,7 @@ implementation("org.springframework.boot:spring-boot-starter-ldap")
 
 ### LDAP Login
 ```
-POST /api/v1/auth/ldap/login
+POST /v1/auth/ldap/login
 Content-Type: application/json
 
 {
@@ -103,7 +103,7 @@ Response: 200 OK
 
 ### Create Organization
 ```
-POST /api/v1/auth/organizations
+POST /v1/auth/organizations
 Content-Type: application/json
 
 {
@@ -123,7 +123,7 @@ Response: 201 Created
 
 ### Get Organization
 ```
-GET /api/v1/auth/organizations/{domain}
+GET /v1/auth/organizations/{domain}
 
 Response: 200 OK
 {...organization data...}
@@ -131,7 +131,7 @@ Response: 200 OK
 
 ### Update Organization
 ```
-PUT /api/v1/auth/organizations/{orgId}
+PUT /v1/auth/organizations/{orgId}
 Content-Type: application/json
 
 {
@@ -254,7 +254,7 @@ chmod +x ldap-test-examples.sh
 
 ### Crear una organización con LDAP
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/organizations \
+curl -X POST http://localhost:8080/v1/auth/organizations \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "mycompany.com",
@@ -268,7 +268,7 @@ curl -X POST http://localhost:8080/api/v1/auth/organizations \
 
 ### Autenticar usuario LDAP
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "mycompany.com",

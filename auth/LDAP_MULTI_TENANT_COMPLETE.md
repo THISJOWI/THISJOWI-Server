@@ -78,7 +78,7 @@ Se ha completado la implementación de un **sistema LDAP robusto y escalable** p
 
 **API:**
 ```http
-POST /api/v1/auth/ldap/test-connection
+POST /v1/auth/ldap/test-connection
 Response: { success, configValid, credentialsValid, message, errors }
 ```
 
@@ -99,10 +99,10 @@ Response: { success, configValid, credentialsValid, message, errors }
 
 **API:**
 ```http
-POST /api/v1/auth/ldap/sync/{domain}
+POST /v1/auth/ldap/sync/{domain}
 Response: { success, foundInLdap, syncedCount, deactivatedCount }
 
-GET /api/v1/auth/ldap/sync-status/{domain}
+GET /v1/auth/ldap/sync-status/{domain}
 Response: { lastSyncTime, nextSyncTime, syncInterval }
 ```
 
@@ -138,10 +138,10 @@ Response: { lastSyncTime, nextSyncTime, syncInterval }
 **Función:** Endpoints REST para administración LDAP
 
 ```
-✓ POST /api/v1/auth/ldap/test-connection    → Test configuración
-✓ POST /api/v1/auth/ldap/sync/{domain}      → Sincronización manual
-✓ GET /api/v1/auth/ldap/sync-status/{domain}→ Estado de sync
-✓ POST /api/v1/auth/ldap/test-user-auth     → Test auth usuario
+✓ POST /v1/auth/ldap/test-connection    → Test configuración
+✓ POST /v1/auth/ldap/sync/{domain}      → Sincronización manual
+✓ GET /v1/auth/ldap/sync-status/{domain}→ Estado de sync
+✓ POST /v1/auth/ldap/test-user-auth     → Test auth usuario
 ```
 
 ---
@@ -182,7 +182,7 @@ Usuario → Selecciona LDAP → Ingresa email@domain.com + password
    ↓
 [Flutter] Extrae dominio → email@domain.com → domain.com
    ↓
-POST /api/v1/auth/ldap/login { domain, username, password }
+POST /v1/auth/ldap/login { domain, username, password }
    ↓
 [Spring Boot] 
   1. Busca Organization WHERE domain = "domain.com"
@@ -204,7 +204,7 @@ Retorna { token, userId, orgId, email, ldapUsername }
 ```
 Admin → Abre "Configurar LDAP" → Ingresa datos → Click "Probar Conexión"
    ↓
-POST /api/v1/auth/ldap/test-connection { ldapUrl, ldapBaseDn, ... }
+POST /v1/auth/ldap/test-connection { ldapUrl, ldapBaseDn, ... }
    ↓
 [Spring Boot] 
   1. Test 1: Conectividad básica
@@ -318,14 +318,14 @@ Las migraciones Flyway crean automáticamente:
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| POST | `/api/v1/auth/ldap/login` | Login contra LDAP |
-| POST | `/api/v1/auth/ldap/test-connection` | Test configuración |
-| POST | `/api/v1/auth/ldap/sync/{domain}` | Sync manual |
-| GET | `/api/v1/auth/ldap/sync-status/{domain}` | Estado de sync |
-| POST | `/api/v1/auth/ldap/test-user-auth` | Test auth usuario |
-| POST | `/api/v1/auth/organizations` | Crear org |
-| GET | `/api/v1/auth/organizations/{domain}` | Obtener org |
-| PUT | `/api/v1/auth/organizations/{orgId}` | Actualizar org |
+| POST | `/v1/auth/ldap/login` | Login contra LDAP |
+| POST | `/v1/auth/ldap/test-connection` | Test configuración |
+| POST | `/v1/auth/ldap/sync/{domain}` | Sync manual |
+| GET | `/v1/auth/ldap/sync-status/{domain}` | Estado de sync |
+| POST | `/v1/auth/ldap/test-user-auth` | Test auth usuario |
+| POST | `/v1/auth/organizations` | Crear org |
+| GET | `/v1/auth/organizations/{domain}` | Obtener org |
+| PUT | `/v1/auth/organizations/{orgId}` | Actualizar org |
 
 ---
 
@@ -374,7 +374,7 @@ chmod +x ldap-test-complete.sh
 ./ldap-test-complete.sh
 
 # 2. Test connection específico
-curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
+curl -X POST http://localhost:8080/v1/auth/ldap/test-connection \
   -H "Content-Type: application/json" \
   -d '{
     "ldapUrl": "ldap://ldap.example.com:389",
@@ -382,7 +382,7 @@ curl -X POST http://localhost:8080/api/v1/auth/ldap/test-connection \
   }'
 
 # 3. LDAP login
-curl -X POST http://localhost:8080/api/v1/auth/ldap/login \
+curl -X POST http://localhost:8080/v1/auth/ldap/login \
   -H "Content-Type: application/json" \
   -d '{
     "domain": "example.com",
@@ -527,7 +527,7 @@ Para problemas o preguntas:
 
 2. **Usar test endpoint**
    ```
-   POST /api/v1/auth/ldap/test-connection
+   POST /v1/auth/ldap/test-connection
    ```
 
 3. **Ejecutar script de testing**

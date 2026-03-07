@@ -20,10 +20,10 @@
 
 ## Controller (✅ 1/1)
 - [x] `AuthRestController.java` - Updated with 4 new endpoints
-  - [x] POST /api/v1/auth/ldap/login
-  - [x] POST /api/v1/auth/organizations
-  - [x] GET /api/v1/auth/organizations/{domain}
-  - [x] PUT /api/v1/auth/organizations/{orgId}
+  - [x] POST /v1/auth/ldap/login
+  - [x] POST /v1/auth/organizations
+  - [x] GET /v1/auth/organizations/{domain}
+  - [x] PUT /v1/auth/organizations/{orgId}
 
 ## Database Migrations (✅ 2/2)
 - [x] `V2__create_organizations_table.sql` - Organizations table
@@ -67,10 +67,10 @@
 - [x] Unique constraints to prevent duplicates
 
 ## API Endpoints (✅ 4/4)
-- [x] POST /api/v1/auth/ldap/login - Authenticate LDAP user
-- [x] POST /api/v1/auth/organizations - Create organization
-- [x] GET /api/v1/auth/organizations/{domain} - Retrieve organization
-- [x] PUT /api/v1/auth/organizations/{orgId} - Update organization
+- [x] POST /v1/auth/ldap/login - Authenticate LDAP user
+- [x] POST /v1/auth/organizations - Create organization
+- [x] GET /v1/auth/organizations/{domain} - Retrieve organization
+- [x] PUT /v1/auth/organizations/{orgId} - Update organization
 
 ## Integration Points (✅ 3/3)
 - [x] UserService - Updated to handle LDAP users

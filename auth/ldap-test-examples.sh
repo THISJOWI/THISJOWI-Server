@@ -2,7 +2,7 @@
 # LDAP Authentication API Test Examples
 # Use these curl commands to test the LDAP integration
 
-BASE_URL="http://localhost:8080/api/v1/auth"
+BASE_URL="http://localhost:8080/v1/auth"
 
 echo "=== 1. Create Organization ==="
 curl -X POST "$BASE_URL/organizations" \

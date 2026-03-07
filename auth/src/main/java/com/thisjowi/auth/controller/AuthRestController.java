@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import com.thisjowi.auth.entity.Organization;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/v1/auth")
 public class AuthRestController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -1176,7 +1176,7 @@ public class AuthRestController {
 
     /**
      * LDAP Login endpoint
-     * POST /api/v1/auth/ldap/login
+     * POST /v1/auth/ldap/login
      * Body: { "domain": "example.com", "username": "jdoe", "password": "password" }
      */
     @PostMapping("/ldap/login")
@@ -1219,7 +1219,7 @@ public class AuthRestController {
 
     /**
      * Create Organization endpoint
-     * POST /api/v1/auth/organizations
+     * POST /v1/auth/organizations
      */
     @PostMapping("/organizations")
     public ResponseEntity<?> createOrganization(@Valid @RequestBody OrganizationRequest request) {
@@ -1269,7 +1269,7 @@ public class AuthRestController {
 
     /**
      * Get Organization by domain
-     * GET /api/v1/auth/organizations/{domain}
+     * GET /v1/auth/organizations/{domain}
      */
     @GetMapping("/organizations/{domain}")
     public ResponseEntity<?> getOrganization(@PathVariable String domain) {
@@ -1305,7 +1305,7 @@ public class AuthRestController {
 
     /**
      * Update Organization LDAP settings
-     * PUT /api/v1/auth/organizations/{orgId}
+     * PUT /v1/auth/organizations/{orgId}
      */
     @PutMapping("/organizations/{orgId}")
     public ResponseEntity<?> updateOrganization(
@@ -1354,7 +1354,7 @@ public class AuthRestController {
 
     /**
      * Test LDAP Connection
-     * POST /api/v1/auth/organizations/test-connection
+     * POST /v1/auth/organizations/test-connection
      */
     @PostMapping("/organizations/test-connection")
     public ResponseEntity<?> testConnection(@RequestBody Map<String, String> request) {

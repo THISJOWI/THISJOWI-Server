@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/passwords")
+@RequestMapping("/v1/passwords")
 public class PasswordController {
     private static final Logger log = LoggerFactory.getLogger(PasswordController.class);
 
@@ -29,26 +29,26 @@ public class PasswordController {
             if (authHeader == null || authHeader.isBlank()) {
                 log.warn("GET /passwords: No Authorization header provided");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Authorization header required"));
+                        .body(Map.of("error", "Authorization header required"));
             }
-            
+
             List<Password> list = passwordService.getPasswordsByToken(authHeader);
             if (list == null) {
                 log.warn("GET /passwords: Invalid or expired token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid or expired token"));
+                        .body(Map.of("error", "Invalid or expired token"));
             }
-            
+
             log.info("GET /passwords: Retrieved {} passwords", list.size());
             return ResponseEntity.ok(list);
         } catch (IllegalArgumentException e) {
             log.error("GET /passwords: Invalid argument - {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Authentication failed"));
+                    .body(Map.of("error", "Authentication failed"));
         } catch (Exception e) {
             log.error("GET /passwords: Unexpected error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error"));
+                    .body(Map.of("error", "Internal server error"));
         }
     }
 
@@ -60,28 +60,28 @@ public class PasswordController {
             if (authHeader == null || authHeader.isBlank()) {
                 log.warn("POST /passwords: No Authorization header provided");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Authorization header required"));
+                        .body(Map.of("error", "Authorization header required"));
             }
-            
+
             // Validate input data
             if (passwordDTO == null) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Request body is required"));
+                        .body(Map.of("error", "Request body is required"));
             }
             if (passwordDTO.getPassword() == null || passwordDTO.getPassword().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Password is required"));
+                        .body(Map.of("error", "Password is required"));
             }
             if (passwordDTO.getName() == null || passwordDTO.getName().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Title is required"));
+                        .body(Map.of("error", "Title is required"));
             }
-            if (passwordDTO.getWebsite() != null && !passwordDTO.getWebsite().trim().isEmpty() && 
-                !passwordDTO.getWebsite().matches("^https?://")) {
+            if (passwordDTO.getWebsite() != null && !passwordDTO.getWebsite().trim().isEmpty() &&
+                    !passwordDTO.getWebsite().matches("^https?://")) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Website must start with http:// or https://"));
+                        .body(Map.of("error", "Website must start with http:// or https://"));
             }
-            
+
             Password password = passwordDTO.toEntity();
             Password saved = passwordService.savePasswordForToken(authHeader, password);
             log.info("POST /passwords: Created new password");
@@ -89,11 +89,11 @@ public class PasswordController {
         } catch (IllegalArgumentException e) {
             log.error("POST /passwords: Invalid argument - {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Authentication failed"));
+                    .body(Map.of("error", "Authentication failed"));
         } catch (Exception e) {
             log.error("POST /passwords: Unexpected error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error"));
+                    .body(Map.of("error", "Internal server error"));
         }
     }
 
@@ -106,19 +106,19 @@ public class PasswordController {
             if (authHeader == null || authHeader.isBlank()) {
                 log.warn("PUT /passwords/{}: No Authorization header provided", id);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Authorization header required"));
+                        .body(Map.of("error", "Authorization header required"));
             }
-            
+
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Invalid password ID"));
+                        .body(Map.of("error", "Invalid password ID"));
             }
-            
+
             if (passwordDTO == null) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Request body is required"));
+                        .body(Map.of("error", "Request body is required"));
             }
-            
+
             Password passwordData = passwordDTO.toEntity();
             Password updated = passwordService.updatePasswordByToken(authHeader, id, passwordData);
             log.info("PUT /passwords/{}: Password updated", id);
@@ -126,15 +126,15 @@ public class PasswordController {
         } catch (IllegalArgumentException e) {
             log.error("PUT /passwords/{}: Invalid argument - {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Authentication failed or resource not found"));
+                    .body(Map.of("error", "Authentication failed or resource not found"));
         } catch (SecurityException se) {
             log.warn("PUT /passwords/{}: Forbidden - user not authorized", id);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("error", "Not authorized to update this resource"));
+                    .body(Map.of("error", "Not authorized to update this resource"));
         } catch (Exception e) {
             log.error("PUT /passwords/{}: Unexpected error", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error"));
+                    .body(Map.of("error", "Internal server error"));
         }
     }
 
@@ -146,29 +146,29 @@ public class PasswordController {
             if (authHeader == null || authHeader.isBlank()) {
                 log.warn("DELETE /passwords/{}: No Authorization header provided", id);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Authorization header required"));
+                        .body(Map.of("error", "Authorization header required"));
             }
-            
+
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Invalid password ID"));
+                        .body(Map.of("error", "Invalid password ID"));
             }
-            
+
             passwordService.deletePasswordByToken(authHeader, id);
             log.info("DELETE /passwords/{}: Password deleted", id);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             log.error("DELETE /passwords/{}: Invalid argument - {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Authentication failed or resource not found"));
+                    .body(Map.of("error", "Authentication failed or resource not found"));
         } catch (SecurityException se) {
             log.warn("DELETE /passwords/{}: Forbidden - user not authorized", id);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("error", "Not authorized to delete this resource"));
+                    .body(Map.of("error", "Not authorized to delete this resource"));
         } catch (Exception e) {
             log.error("DELETE /passwords/{}: Unexpected error", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error"));
+                    .body(Map.of("error", "Internal server error"));
         }
     }
 }
