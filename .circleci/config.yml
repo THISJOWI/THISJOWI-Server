@@ -47,35 +47,35 @@ jobs:
     steps:
       - docker-build-push:
           service: auth
-          image: thisjowi/auth
+          image: thsjowi/auth
 
   build-config:
     executor: docker-executor
     steps:
       - docker-build-push:
           service: config
-          image: thisjowi/config
+          image: thsjowi/config
 
   build-note:
     executor: docker-executor
     steps:
       - docker-build-push:
           service: note
-          image: thisjowi/note
+          image: thsjowi/note
 
   build-otp:
     executor: docker-executor
     steps:
       - docker-build-push:
           service: otp
-          image: thisjowi/otp
+          image: thsjowi/otp
 
   build-password:
     executor: docker-executor
     steps:
       - docker-build-push:
           service: password
-          image: thisjowi/password
+          image: thsjowi/password
 
   # ── NestJS service ───────────────────────
   build-messages:
@@ -83,7 +83,7 @@ jobs:
     steps:
       - docker-build-push:
           service: messages
-          image: thisjowi/messages
+          image: thsjowi/messages
 
 # ─────────────────────────────────────────
 # Workflow
