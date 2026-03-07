@@ -1,0 +1,117 @@
+version: 2.1
+
+# ─────────────────────────────────────────
+# Executors
+# ─────────────────────────────────────────
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+
+# ─────────────────────────────────────────
+# Commands reutilizables
+# ─────────────────────────────────────────
+commands:
+  docker-build-push:
+    parameters:
+      service:
+        type: string
+      image:
+        type: string
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: "Build & Push << parameters.image >>"
+          command: |
+            IMAGE_TAG="<< parameters.image >>:${CIRCLE_SHA1}"
+            IMAGE_LATEST="<< parameters.image >>:latest"
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker build \
+              -t "$IMAGE_TAG" \
+              -t "$IMAGE_LATEST" \
+              ./<< parameters.service >>
+            docker push "$IMAGE_TAG"
+            docker push "$IMAGE_LATEST"
+
+# ─────────────────────────────────────────
+# Jobs — uno por servicio
+# ─────────────────────────────────────────
+jobs:
+
+  # ── Spring Boot services ─────────────────
+  build-auth:
+    executor: docker-executor
+    steps:
+      - docker-build-push:
+          service: auth
+          image: thisjowi/auth
+
+  build-config:
+    executor: docker-executor
+    steps:
+      - docker-build-push:
+          service: config
+          image: thisjowi/config
+
+  build-note:
+    executor: docker-executor
+    steps:
+      - docker-build-push:
+          service: note
+          image: thisjowi/note
+
+  build-otp:
+    executor: docker-executor
+    steps:
+      - docker-build-push:
+          service: otp
+          image: thisjowi/otp
+
+  build-password:
+    executor: docker-executor
+    steps:
+      - docker-build-push:
+          service: password
+          image: thisjowi/password
+
+  # ── NestJS service ───────────────────────
+  build-messages:
+    executor: docker-executor
+    steps:
+      - docker-build-push:
+          service: messages
+          image: thisjowi/messages
+
+# ─────────────────────────────────────────
+# Workflow
+# ─────────────────────────────────────────
+workflows:
+  docker-build-all:
+    jobs:
+      - build-auth:
+          filters:
+            branches:
+              only: master
+      - build-config:
+          filters:
+            branches:
+              only: master
+      - build-note:
+          filters:
+            branches:
+              only: master
+      - build-otp:
+          filters:
+            branches:
+              only: master
+      - build-password:
+          filters:
+            branches:
+              only: master
+      - build-messages:
+          filters:
+            branches:
+              only: master
