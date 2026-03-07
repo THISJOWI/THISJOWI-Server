@@ -3,6 +3,7 @@ package com.thisjowi.otp.controller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.thisjowi.otp.entity.otp;
 import com.thisjowi.otp.service.OtpService;
 import com.thisjowi.otp.service.QrService;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/otp")
+@Tag(name = "OTP / Authenticator", description = "TOTP code generation, QR decoding, OTP validation and encrypted secret management")
 public class OtpController {
 
     private final OtpService otpService;

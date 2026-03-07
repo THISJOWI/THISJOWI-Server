@@ -21,26 +21,54 @@ public class JwtUtil {
         if (secret == null || secret.trim().isEmpty()) {
             throw new IllegalArgumentException("JWT secret cannot be null or empty");
         }
-        
+
         // Validar longitud mínima (256 bits = 32 bytes en base64)
         if (secret.length() < 32) {
             throw new IllegalArgumentException(
-                "JWT secret must be at least 32 characters long (256 bits). Current length: " + secret.length());
+                    "JWT secret must be at least 32 characters long (256 bits). Current length: " + secret.length());
         }
         System.out.println("JwtUtil initialized with secret length: " + secret.length());
-        
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(Long userId, String email) {
+    public String generateToken(Long userId, String email, String accountType, boolean isLdapUser) {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .claim("email", email)
+                .claim("accountType", accountType)
+                .claim("isLdapUser", isLdapUser)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String extractAccountType(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("accountType", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Boolean extractIsLdapUser(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("isLdapUser", Boolean.class);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public Long extractUserId(String token) {

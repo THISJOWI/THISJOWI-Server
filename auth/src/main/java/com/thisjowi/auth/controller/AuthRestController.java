@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpEntity;
@@ -45,6 +46,7 @@ import com.thisjowi.auth.entity.Organization;
 
 @RestController
 @RequestMapping("/v1/auth")
+@Tag(name = "Authentication", description = "User authentication, registration, OAuth2, LDAP, password management and organization endpoints")
 public class AuthRestController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -124,8 +126,10 @@ public class AuthRestController {
             user.setLastLogin(LocalDate.now());
             userRepository.save(user);
 
-            // generate JWT token with user ID
-            String jwtToken = jwtUtil.generateToken(user.getId(), user.getEmail());
+            // generate JWT token with user ID, account type and ldap status
+            String jwtToken = jwtUtil.generateToken(user.getId(), user.getEmail(),
+                    user.getAccountType() != null ? user.getAccountType().name() : "Community",
+                    user.isLdapUser());
             log.info("User '{}' (ID: {}) authenticated successfully", user.getEmail(), user.getId());
 
             return ResponseEntity.ok(Map.of(
@@ -239,7 +243,9 @@ public class AuthRestController {
             log.info("User saved with ID: {}", savedUser.getId());
 
             // Generate JWT
-            String jwtToken = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail());
+            String jwtToken = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail(),
+                    savedUser.getAccountType() != null ? savedUser.getAccountType().name() : "Community",
+                    savedUser.isLdapUser());
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -340,7 +346,9 @@ public class AuthRestController {
             User savedUser = userService.saveUser(user);
             log.info("GitHub User saved with ID: {}", savedUser.getId());
 
-            String jwtToken = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail());
+            String jwtToken = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail(),
+                    savedUser.getAccountType() != null ? savedUser.getAccountType().name() : "Community",
+                    savedUser.isLdapUser());
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "email", user.getEmail(),
@@ -513,7 +521,9 @@ public class AuthRestController {
 
         redisTemplate.delete("REG_OTP:" + email);
 
-        String jwtToken = jwtUtil.generateToken(user.getId(), user.getEmail());
+        String jwtToken = jwtUtil.generateToken(user.getId(), user.getEmail(),
+                user.getAccountType() != null ? user.getAccountType().name() : "Community",
+                user.isLdapUser());
         log.info("Registered new user '{}' (ID: {})", user.getEmail(), user.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -1198,7 +1208,9 @@ public class AuthRestController {
             userRepository.save(user);
 
             // Generate JWT token
-            String jwtToken = jwtUtil.generateToken(user.getId(), user.getEmail());
+            String jwtToken = jwtUtil.generateToken(user.getId(), user.getEmail(),
+                    user.getAccountType() != null ? user.getAccountType().name() : "Business",
+                    user.isLdapUser());
             log.info("LDAP user '{}' (ID: {}) authenticated successfully", user.getEmail(), user.getId());
 
             return ResponseEntity.ok(Map.of(

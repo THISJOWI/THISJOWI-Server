@@ -26,22 +26,27 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
-        
+
         if (email == null) {
             // Should have been caught by UserService, but just in case
             response.sendRedirect("/login?error=no_email");
             return;
         }
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
-        
-        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
-        
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
+
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail(),
+                user.getAccountType() != null ? user.getAccountType().name() : "Community",
+                user.isLdapUser());
+
         // Redirect to app via deep link
-        // The scheme 'thisjowi' must be configured in the Flutter app (AndroidManifest.xml / Info.plist)
+        // The scheme 'thisjowi' must be configured in the Flutter app
+        // (AndroidManifest.xml / Info.plist)
         String targetUrl = UriComponentsBuilder.fromUriString("thisjowi://auth/callback")
                 .queryParam("token", token)
                 .queryParam("email", email)

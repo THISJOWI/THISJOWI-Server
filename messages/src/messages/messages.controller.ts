@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Param, Query, Headers, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Headers, Put, Delete, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 
+interface JwtPayload {
+  userId?: string;
+  sub?: string;
+  email?: string;
+  accountType?: string;
+  isLdapUser?: boolean;
+}
+
+@ApiTags('Messages')
+@ApiBearerAuth('Bearer Authentication')
 @Controller('/v1/messages')
 export class MessagesController {
   private readonly AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth/v1/auth';
@@ -12,11 +23,23 @@ export class MessagesController {
   }
 
   @Post()
-  create(@Body() createMessageDto: CreateMessageDto) {
+  @ApiOperation({ summary: 'Create a new message' })
+  async create(@Body() createMessageDto: CreateMessageDto, @Headers('authorization') authHeader: string) {
+    const userId = await this.extractUserIdFromToken(authHeader);
+    if (!userId) {
+      throw new ForbiddenException('Message service is only available for Business accounts with LDAP');
+    }
+
+    // Ensure the senderId in the DTO matches the userId in the token
+    if (createMessageDto.senderId !== userId) {
+      createMessageDto.senderId = userId;
+    }
+
     return this.messagesService.create(createMessageDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all messages for the authenticated user' })
   async findAll(@Headers('authorization') authHeader: string) {
     const userId = await this.extractUserIdFromToken(authHeader);
     if (!userId) {
@@ -26,6 +49,7 @@ export class MessagesController {
   }
 
   @Get('conversations')
+  @ApiOperation({ summary: 'Get all conversations for the authenticated user' })
   async getConversations(@Headers('authorization') authHeader: string) {
     try {
       // Extract userId from JWT token if available
@@ -54,6 +78,7 @@ export class MessagesController {
   }
 
   @Post('conversations')
+  @ApiOperation({ summary: 'Create a new conversation' })
   async createConversation(
     @Body() body: { participantIds: string[] },
     @Headers('authorization') authHeader: string,
@@ -66,6 +91,8 @@ export class MessagesController {
   }
 
   @Get('between/:recipientId')
+  @ApiOperation({ summary: 'Get messages between the authenticated user and a recipient' })
+  @ApiParam({ name: 'recipientId', description: 'ID of the recipient user' })
   getMessagesBetweenUsers(
     @Param('recipientId') recipientId: string,
     @Headers('authorization') authHeader: string,
@@ -78,6 +105,8 @@ export class MessagesController {
   }
 
   @Get(':conversationId')
+  @ApiOperation({ summary: 'Get messages in a conversation' })
+  @ApiParam({ name: 'conversationId', description: 'ID of the conversation' })
   async getMessages(
     @Param('conversationId') conversationId: string,
     @Headers('authorization') authHeader: string,
@@ -96,6 +125,8 @@ export class MessagesController {
   }
 
   @Put(':conversationId/read')
+  @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
+  @ApiParam({ name: 'conversationId', description: 'ID of the conversation' })
   async markAsRead(
     @Param('conversationId') conversationId: string,
     @Headers('authorization') authHeader: string,
@@ -106,6 +137,9 @@ export class MessagesController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a message' })
+  @ApiParam({ name: 'id', description: 'ID of the message to delete' })
+  @ApiQuery({ name: 'type', required: false, enum: ['me', 'everyone'], description: 'Deletion scope' })
   async deleteMessage(
     @Param('id') id: string,
     @Query('type') type: 'me' | 'everyone' = 'everyone',
@@ -126,12 +160,13 @@ export class MessagesController {
       console.log(`📱 Fetching LDAP users for domain: ${domain}`);
       console.log(`🌐 Using AUTH_SERVICE_URL: ${this.AUTH_SERVICE_URL}`);
 
-      if (!authHeader) {
-        console.warn('⚠️ No authorization header provided');
+      const userId = await this.extractUserIdFromToken(authHeader);
+      if (!userId) {
+        console.warn('⚠️ Unauthorized or non-Business/LDAP user');
         return {
           success: false,
           data: [],
-          message: 'Authorization required',
+          message: 'Message service is only available for Business accounts with LDAP',
         };
       }
 
@@ -222,7 +257,15 @@ export class MessagesController {
       // Decode JWT payload (without verification for simplicity)
       const parts = token.split('.');
       if (parts.length !== 3) return null;
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+
+      const payload: JwtPayload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+
+      // LOGIC: Only Business account with LDAP enabled
+      if (payload.accountType !== 'Business' || !payload.isLdapUser) {
+        console.warn(`🛑 User ${payload.userId || payload.email} rejected: AccountType=${payload.accountType}, LDAP=${!!payload.isLdapUser}`);
+        return null;
+      }
+
       return payload.userId || payload.sub || null;
     } catch (e) {
       return null;

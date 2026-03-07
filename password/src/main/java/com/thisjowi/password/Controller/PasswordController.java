@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.thisjowi.password.Entity.Password;
 import com.thisjowi.password.Entity.PasswordDTO;
 import com.thisjowi.password.Service.PasswordService;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/passwords")
+@Tag(name = "Passwords", description = "Encrypted password storage with CRUD operations and field-level AES encryption")
 public class PasswordController {
     private static final Logger log = LoggerFactory.getLogger(PasswordController.class);
 

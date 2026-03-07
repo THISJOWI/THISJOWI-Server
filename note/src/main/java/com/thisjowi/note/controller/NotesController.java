@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.thisjowi.note.entity.Note;
 import com.thisjowi.note.repository.NoteRepository;
 import com.thisjowi.note.service.NoteService;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/notes")
+@Tag(name = "Notes", description = "Encrypted note storage with CRUD operations and user-scoped access")
 public class NotesController {
 
     @Autowired

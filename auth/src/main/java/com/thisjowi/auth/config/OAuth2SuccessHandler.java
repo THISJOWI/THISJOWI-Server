@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.io.IOException;
 
 /**
@@ -32,31 +31,37 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         try {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
             String email = oauth2User.getAttribute("email");
-            
+
             if (email == null) {
-                // Fallback for providers that might not return email directly or use different attribute
-                // For GitHub, we might need to make a separate API call if email is private, 
-                // but for now let's assume email is available or use login as fallback if it looks like an email
+                // Fallback for providers that might not return email directly or use different
+                // attribute
+                // For GitHub, we might need to make a separate API call if email is private,
+                // but for now let's assume email is available or use login as fallback if it
+                // looks like an email
                 String login = oauth2User.getAttribute("login");
                 if (login != null && login.contains("@")) {
                     email = login;
                 } else {
                     log.warn("Email not found in OAuth2 attributes");
-                    // We could throw exception or handle it, but let's proceed and let getUserByEmail fail
+                    // We could throw exception or handle it, but let's proceed and let
+                    // getUserByEmail fail
                 }
             }
-            
+
             log.info("OAuth2 success for user: {}", email);
 
             // Get user from DB (must have been created by OAuth2UserService)
             var user = userService.getUserByEmail(email);
 
             // Generate JWT token
-            String jwtToken = jwtUtil.generateToken(user.getId(), email);
+            String jwtToken = jwtUtil.generateToken(user.getId(), email,
+                    user.getAccountType() != null ? user.getAccountType().name() : "Community",
+                    user.isLdapUser());
 
             // Redirect with token as query parameter
             String redirectUrl = "myapp://oauth-callback?token=" + jwtToken;
