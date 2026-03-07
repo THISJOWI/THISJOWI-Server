@@ -28,15 +28,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
-        
-        // GitHub might not return email if it's private. 
-        // In a real scenario, we might need to make a separate API call to /user/emails if email is null.
+
+        // GitHub might not return email if it's private.
+        // In a real scenario, we might need to make a separate API call to /user/emails
+        // if email is null.
         // For now, we assume email is available (scope: user:email).
 
         if (email == null) {
-             // Fallback for GitHub if email is not in attributes (sometimes happens)
-             // We could try to get "login" as a fallback but we need email for our system.
-             throw new OAuth2AuthenticationException("Email not found from OAuth2 provider");
+            // Fallback for GitHub if email is not in attributes (sometimes happens)
+            // We could try to get "login" as a fallback but we need email for our system.
+            throw new OAuth2AuthenticationException("Email not found from OAuth2 provider");
         }
 
         Optional<User> userOptional = userRepository.findByEmail(email);
@@ -44,6 +45,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (userOptional.isPresent()) {
             user = userOptional.get();
             user.setLastLogin(LocalDate.now());
+            user.setVerified(true);
             userRepository.save(user);
         } else {
             user = new User();
@@ -54,8 +56,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setVerified(true);
             user.setLastLogin(LocalDate.now());
             // Set a random password since they login via OAuth
-            user.setPassword(UUID.randomUUID().toString()); 
-            
+            user.setPassword(UUID.randomUUID().toString());
+
             userRepository.save(user);
         }
 

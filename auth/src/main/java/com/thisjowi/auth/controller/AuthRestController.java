@@ -228,11 +228,13 @@ public class AuthRestController {
                 newUser.setEmail(finalEmail);
                 newUser.setPassword(passwordEncoder.encode("GOOGLE_OAUTH_" + java.util.UUID.randomUUID()));
                 newUser.setCreatedAt(LocalDateTime.now());
+                newUser.setVerified(true);
                 return userService.saveUser(newUser);
             });
 
-            // Update last login
+            // Update last login and ensure verified
             user.setLastLogin(LocalDate.now());
+            user.setVerified(true);
             User savedUser = userService.saveUser(user);
             log.info("User saved with ID: {}", savedUser.getId());
 
@@ -334,6 +336,7 @@ public class AuthRestController {
             });
 
             user.setLastLogin(LocalDate.now());
+            user.setVerified(true);
             User savedUser = userService.saveUser(user);
             log.info("GitHub User saved with ID: {}", savedUser.getId());
 

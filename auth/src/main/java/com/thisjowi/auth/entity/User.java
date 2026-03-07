@@ -50,11 +50,11 @@ public class User {
 
     @Column(nullable = true)
     @Enumerated(EnumType.STRING)
-    private Deployment deploymentType;
+    private Deployment deploymentType = Deployment.Cloud;
 
     @Column(nullable = true)
     @Enumerated(EnumType.STRING)
-    private Account accountType;
+    private Account accountType = Account.Community;
 
     @Column(name = "verification_code")
     private String verificationCode;
