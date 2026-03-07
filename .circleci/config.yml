@@ -1,8 +1,5 @@
 version: 2.1
 
-# ─────────────────────────────────────────
-# Executors
-# ─────────────────────────────────────────
 executors:
   docker-executor:
     docker:
@@ -10,9 +7,27 @@ executors:
     resource_class: medium
 
 # ─────────────────────────────────────────
-# Commands reutilizables
+# Commands
 # ─────────────────────────────────────────
 commands:
+
+  check-changes:
+    parameters:
+      service:
+        type: string
+    steps:
+      - run:
+          name: "Detectar cambios en << parameters.service >>/"
+          command: |
+            # En el primer commit del repo comparamos contra el árbol vacío
+            BASE=$(git rev-parse --verify HEAD~1 2>/dev/null || echo "4b825dc642cb6eb9a060e54bf8d69288fbee4904")
+            if git diff --name-only "$BASE" HEAD | grep -q "^<< parameters.service >>/"; then
+              echo "export SHOULD_BUILD=true" >> $BASH_ENV
+            else
+              echo "Sin cambios en << parameters.service >>, saltando build."
+              echo "export SHOULD_BUILD=false" >> $BASH_ENV
+            fi
+
   docker-build-push:
     parameters:
       service:
@@ -23,9 +38,16 @@ commands:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
+      - check-changes:
+          service: << parameters.service >>
       - run:
           name: "Build & Push << parameters.image >>"
           command: |
+            source $BASH_ENV
+            if [ "$SHOULD_BUILD" = "false" ]; then
+              echo "Skipping << parameters.service >> — sin cambios."
+              exit 0
+            fi
             IMAGE_TAG="<< parameters.image >>:${CIRCLE_SHA1}"
             IMAGE_LATEST="<< parameters.image >>:latest"
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -35,13 +57,40 @@ commands:
               ./<< parameters.service >>
             docker push "$IMAGE_TAG"
             docker push "$IMAGE_LATEST"
+            # Guardar que este servicio fue buildeado para el job de deploy
+            echo "true" > /tmp/built_<< parameters.service >>
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - built_<< parameters.service >>
+
+  update-k8s-manifest:
+    parameters:
+      service:
+        type: string
+      manifest_path:
+        type: string
+      image:
+        type: string
+    steps:
+      - run:
+          name: "Actualizar tag en << parameters.manifest_path >>"
+          command: |
+            # Solo actualizar si este servicio fue buildeado
+            if [ ! -f /tmp/built_<< parameters.service >> ]; then
+              echo "Skipping << parameters.service >> — no fue buildeado en este pipeline."
+              exit 0
+            fi
+            sed -i "s|<< parameters.image >>:.*|<< parameters.image >>:${CIRCLE_SHA1}|g" \
+              k8s-repo/<< parameters.manifest_path >>
+            echo "Tag actualizado: << parameters.image >>:${CIRCLE_SHA1}"
 
 # ─────────────────────────────────────────
-# Jobs — uno por servicio
+# Jobs
 # ─────────────────────────────────────────
 jobs:
 
-  # ── Spring Boot services ─────────────────
+  # ── Spring Boot ──────────────────────────
   build-auth:
     executor: docker-executor
     steps:
@@ -56,7 +105,7 @@ jobs:
           service: config
           image: thsjowi/config
 
-  build-note:
+  build-notes:
     executor: docker-executor
     steps:
       - docker-build-push:
@@ -77,7 +126,7 @@ jobs:
           service: password
           image: thsjowi/password
 
-  # ── NestJS service ───────────────────────
+  # ── NestJS ───────────────────────────────
   build-messages:
     executor: docker-executor
     steps:
@@ -85,11 +134,56 @@ jobs:
           service: messages
           image: thsjowi/messages
 
+  # ── Deploy: actualizar manifiestos ArgoCD ─
+  deploy-argocd:
+    executor: docker-executor
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Clonar repo de infraestructura
+          command: |
+            git clone https://${GITHUB_TOKEN}@github.com/THISJOWI/THISJOWI-Infrastructure.git k8s-repo
+      - update-k8s-manifest:
+          service: auth
+          manifest_path: manifests/application/auth/deploy.yaml
+          image: thsjowi/auth
+      - update-k8s-manifest:
+          service: config
+          manifest_path: manifests/application/config/deploy.yaml
+          image: thsjowi/config
+      - update-k8s-manifest:
+          service: note
+          manifest_path: manifests/application/notes/deploy.yaml
+          image: thsjowi/note
+      - update-k8s-manifest:
+          service: otp
+          manifest_path: manifests/application/otp/deploy.yaml
+          image: thsjowi/otp
+      - update-k8s-manifest:
+          service: password
+          manifest_path: manifests/application/password/deploy.yaml
+          image: thsjowi/password
+      - update-k8s-manifest:
+          service: messages
+          manifest_path: manifests/application/messages/deploy.yaml
+          image: thsjowi/messages
+      - run:
+          name: Commit y push de cambios
+          command: |
+            cd k8s-repo
+            git config user.email "circleci@deploy-bot"
+            git config user.name "CircleCI Deploy Bot"
+            git add manifests/application/
+            git diff --cached --quiet && echo "Nada que commitear" && exit 0
+            git commit -m "ci: update images to ${CIRCLE_SHA1} [skip ci]"
+            git push origin master
+
 # ─────────────────────────────────────────
 # Workflow
 # ─────────────────────────────────────────
 workflows:
-  docker-build-all:
+  ci-cd:
     jobs:
       - build-auth:
           filters:
@@ -99,7 +193,7 @@ workflows:
           filters:
             branches:
               only: master
-      - build-note:
+      - build-notes:
           filters:
             branches:
               only: master
@@ -112,6 +206,17 @@ workflows:
             branches:
               only: master
       - build-messages:
+          filters:
+            branches:
+              only: master
+      - deploy-argocd:
+          requires:
+            - build-auth
+            - build-config
+            - build-notes
+            - build-otp
+            - build-password
+            - build-messages
           filters:
             branches:
               only: master
