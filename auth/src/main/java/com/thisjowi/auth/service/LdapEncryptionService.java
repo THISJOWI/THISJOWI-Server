@@ -16,7 +16,7 @@ import java.util.Base64;
  * Uses AES-256 encryption
  * 
  * Security Recommendations:
- * 1. Store the encryption key in environment variables or a secure vault (AWS Secrets Manager, Azure Key Vault)
+ * 1. Store the encryption key in environment variables
  * 2. Use a strong random key (32 bytes for AES-256)
  * 3. Rotate keys periodically
  * 4. Never commit the key to version control
@@ -46,12 +46,12 @@ public class LdapEncryptionService {
             } else {
                 // Decode the base64 encoded key from configuration
                 byte[] decodedKey = Base64.getDecoder().decode(encryptionKeyString);
-                
+
                 if (decodedKey.length != 32) {
                     throw new IllegalArgumentException(
                             "Invalid encryption key length. Expected 32 bytes (256 bits), got " + decodedKey.length);
                 }
-                
+
                 secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, ALGORITHM);
                 log.info("LDAP encryption key initialized successfully");
             }
@@ -92,7 +92,7 @@ public class LdapEncryptionService {
             Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             byte[] encryptedData = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
-            
+
             // Return base64 encoded encrypted data
             return Base64.getEncoder().encodeToString(encryptedData);
 
@@ -117,10 +117,10 @@ public class LdapEncryptionService {
 
             Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            
+
             byte[] encryptedData = Base64.getDecoder().decode(encryptedBase64);
             byte[] decryptedData = cipher.doFinal(encryptedData);
-            
+
             return new String(decryptedData, StandardCharsets.UTF_8);
 
         } catch (IllegalArgumentException e) {
@@ -141,7 +141,7 @@ public class LdapEncryptionService {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
             keyGenerator.init(256);
             SecretKey key = keyGenerator.generateKey();
-            
+
             // Return base64 encoded key
             return Base64.getEncoder().encodeToString(key.getEncoded());
 

@@ -19,7 +19,6 @@ async function bootstrap() {
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'Enter your JWT token' },
       'Bearer Authentication',
     )
-    .addSecurity('Bearer Authentication', [])
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);

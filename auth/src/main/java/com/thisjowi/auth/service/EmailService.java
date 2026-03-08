@@ -14,6 +14,7 @@ import org.springframework.util.StreamUtils;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import org.springframework.scheduling.annotation.Async;
 
 @Service
 public class EmailService {
@@ -32,6 +33,7 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
     }
 
+    @Async
     public void sendVerificationEmail(String to, String verificationToken) {
         log.info("Preparing to send verification email to: {}", to);
         String subject = "Verify your email";
@@ -39,6 +41,7 @@ public class EmailService {
         sendEmail(to, subject, htmlContent);
     }
 
+    @Async
     public void sendPasswordResetEmail(String to, String name, String otp) {
         log.info("Preparing to send password reset email to: {}", to);
         String subject = "Reset your password";
