@@ -30,13 +30,14 @@ public class AuthenticationClient {
 
     public Long getUserIdFromToken(String token) {
         String headerValue = token != null && token.startsWith("Bearer ") ? token : ("Bearer " + token);
-        log.debug("Calling Authentication service /user to validate token");
+        log.debug("Calling Authentication service /v1/auth/user to validate token");
 
         Mono<Long> mono = authenticationWebClient.get()
-                .uri("/user")
+                .uri(uriBuilder -> uriBuilder.path("/v1/auth/user").build())
                 .header(HttpHeaders.AUTHORIZATION, headerValue)
                 .exchangeToMono((ClientResponse resp) -> {
                     int statusCode = resp.statusCode().value();
+                    log.debug("Auth service response status: {}", statusCode);
                     
                     // Handle redirects
                     if (statusCode >= 300 && statusCode < 400) {
@@ -49,7 +50,9 @@ public class AuthenticationClient {
                                 .map(body -> {
                                     Object userIdObj = body.get("userId");
                                     if (userIdObj instanceof Number) {
-                                        return ((Number) userIdObj).longValue();
+                                        long userId = ((Number) userIdObj).longValue();
+                                        log.debug("Successfully extracted userId: {}", userId);
+                                        return userId;
                                     }
                                     log.warn("Auth service returned body without valid userId: {}", body);
                                     return -1L;
