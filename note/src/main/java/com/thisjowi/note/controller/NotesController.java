@@ -55,7 +55,7 @@ public class NotesController {
 
         // Assign the userId of the authenticated user to the note
         note.setUserId(userId);
-        Note savedNote = notesService.saveNote(note);
+        Note savedNote = notesService.saveNoteWithDeduplication(note);
         return ResponseEntity.ok(savedNote);
     }
 

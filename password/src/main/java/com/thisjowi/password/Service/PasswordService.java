@@ -41,6 +41,50 @@ public class PasswordService {
     }
 
     /**
+     * Save or update a password for the authenticated user, preventing duplicates.
+     * If a password with the same userId, name, and website already exists,
+     * it will be updated instead of creating a new one.
+     */
+    public Password savePasswordForTokenWithDeduplication(String authHeader, Password passwordData) {
+        Long userId = extractUserIdFromToken(authHeader);
+        if (userId == null || userId == -1L) {
+            throw new IllegalArgumentException("Invalid or expired token");
+        }
+
+        String nameToCheck = passwordData.getName() != null ? passwordData.getName().trim() : "";
+        String websiteToCheck = passwordData.getWebsite() != null ? passwordData.getWebsite().trim() : "";
+
+        // Encrypt for comparison
+        String encryptedName = nameToCheck.isEmpty() ? "" : encryption.encrypt(nameToCheck);
+        String encryptedWebsite = websiteToCheck.isEmpty() ? "" : encryption.encrypt(websiteToCheck);
+
+        // Check if a duplicate exists
+        var existingOptional = passwordRepository.findByUserIdAndNameAndWebsite(
+            userId,
+            encryptedName,
+            encryptedWebsite
+        );
+
+        if (existingOptional.isPresent()) {
+            // Update existing password instead of creating a duplicate
+            Password existing = existingOptional.get();
+            log.info("Duplicate detected for user {}, updating existing password id: {}", userId, existing.getId());
+
+            // Update password field
+            if (passwordData.getPassword() != null && !passwordData.getPassword().isEmpty()) {
+                existing.setPassword(encryption.encrypt(passwordData.getPassword()));
+            }
+
+            return updatePassword(existing);
+        } else {
+            // No duplicate, create new
+            log.info("No duplicate found, creating new password for user {}", userId);
+            passwordData.setUserId(userId);
+            return savePassword(passwordData);
+        }
+    }
+
+    /**
      * Get all passwords for the user in the JWT token (Authorization header).
      * IMPORTANT: Only accepts Authorization header, NOT Kafka fallback (security measure).
      */

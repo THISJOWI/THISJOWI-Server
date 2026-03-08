@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import com.thisjowi.password.Entity.Password;
 import com.thisjowi.password.Entity.PasswordDTO;
 import com.thisjowi.password.Service.PasswordService;
+import com.thisjowi.password.Service.PasswordDeduplicationService;
+import com.thisjowi.password.Utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,12 @@ public class PasswordController {
 
     @Autowired
     private PasswordService passwordService;
+
+    @Autowired
+    private PasswordDeduplicationService deduplicationService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping
     public ResponseEntity<?> getPasswordsByToken(
@@ -85,8 +93,8 @@ public class PasswordController {
             }
 
             Password password = passwordDTO.toEntity();
-            Password saved = passwordService.savePasswordForToken(authHeader, password);
-            log.info("POST /passwords: Created new password");
+            Password saved = passwordService.savePasswordForTokenWithDeduplication(authHeader, password);
+            log.info("POST /passwords: Created or updated password (no duplicates allowed)");
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
             log.error("POST /passwords: Invalid argument - {}", e.getMessage());
@@ -172,5 +180,76 @@ public class PasswordController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Internal server error"));
         }
+    }
+
+    /**
+     * Analyze duplicates for the authenticated user
+     * Returns information about duplicate passwords found
+     */
+    @GetMapping("/admin/analyze-duplicates")
+    public ResponseEntity<?> analyzeDuplicates(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
+        try {
+            if (authHeader == null || authHeader.isBlank()) {
+                log.warn("GET /passwords/admin/analyze-duplicates: No Authorization header");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Authorization header required"));
+            }
+
+            Long userId = extractUserIdFromToken(authHeader);
+            if (userId == null || userId == -1L) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or expired token"));
+            }
+
+            log.info("Analyzing duplicates for user {}", userId);
+            Map<String, Object> result = deduplicationService.analyzeDuplicates(userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error analyzing duplicates", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to analyze duplicates"));
+        }
+    }
+
+    /**
+     * Remove duplicate passwords for the authenticated user
+     * Keeps the most recent copy and deletes older duplicates
+     */
+    @PostMapping("/admin/remove-duplicates")
+    public ResponseEntity<?> removeDuplicates(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
+        try {
+            if (authHeader == null || authHeader.isBlank()) {
+                log.warn("POST /passwords/admin/remove-duplicates: No Authorization header");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Authorization header required"));
+            }
+
+            Long userId = extractUserIdFromToken(authHeader);
+            if (userId == null || userId == -1L) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or expired token"));
+            }
+
+            log.warn("Removing duplicates for user {}", userId);
+            Map<String, Object> result = deduplicationService.removeDuplicates(userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error removing duplicates", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to remove duplicates"));
+        }
+    }
+
+    /**
+     * Extract user ID from JWT token
+     */
+    private Long extractUserIdFromToken(String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return null;
+        }
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        return jwtUtil.extractUserId(token);
     }
 }

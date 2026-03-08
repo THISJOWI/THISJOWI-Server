@@ -2,6 +2,8 @@ package com.thisjowi.note.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.thisjowi.note.Utils.EncryptionUtil;
 import com.thisjowi.note.entity.Note;
 import com.thisjowi.note.repository.NoteRepository;
@@ -13,6 +15,7 @@ import java.util.Optional;
 @Service
 public class NoteService {
 
+    private static final Logger logger = LoggerFactory.getLogger(NoteService.class);
     private final NoteRepository noteRepository;
 
     public NoteService(NoteRepository noteRepository) {
@@ -48,6 +51,53 @@ public class NoteService {
         response.setTitle(EncryptionUtil.decrypt(saved.getTitle()));
         response.setContent(EncryptionUtil.decrypt(saved.getContent()));
         return response;
+    }
+
+    /**
+     * Save or update a note, preventing duplicates for the same user.
+     * If a note with the same title already exists for the user, it will be updated.
+     */
+    @Transactional
+    public Note saveNoteWithDeduplication(Note note) {
+        if (note.getUserId() == null) {
+            throw new IllegalArgumentException("UserId is required");
+        }
+
+        Long userId = note.getUserId();
+        String titleToCheck = note.getTitle() != null ? note.getTitle().trim() : "";
+
+        if (titleToCheck.isEmpty()) {
+            throw new IllegalArgumentException("Note title is required");
+        }
+
+        // Check if a note with the same title and user already exists
+        Optional<Note> existingOptional = noteRepository.findByTitleIgnoreCaseAndUserId(titleToCheck, userId);
+
+        if (existingOptional.isPresent()) {
+            // Update existing note
+            Note existing = existingOptional.get();
+            logger.info("Duplicate note detected for user {}, updating existing note id: {}", userId, existing.getId());
+
+            // Update content
+            if (note.getContent() != null && !note.getContent().isEmpty()) {
+                existing.setContent(EncryptionUtil.encrypt(note.getContent()));
+            }
+
+            Note saved = noteRepository.save(existing);
+
+            // Return with decrypted content
+            Note response = new Note();
+            response.setId(saved.getId());
+            response.setUserId(saved.getUserId());
+            response.setCreatedAt(saved.getCreatedAt());
+            response.setTitle(EncryptionUtil.decrypt(saved.getTitle()));
+            response.setContent(EncryptionUtil.decrypt(saved.getContent()));
+            return response;
+        } else {
+            // Create new note
+            logger.info("No duplicate found, creating new note for user {}", userId);
+            return saveNote(note);
+        }
     }
 
     @Transactional(readOnly = true)
