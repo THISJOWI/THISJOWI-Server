@@ -33,10 +33,18 @@ public class AuthenticationClient {
         log.debug("Calling Authentication service /user to validate token");
 
         Mono<Long> mono = authenticationWebClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/v1/auth/user").build())
+                .uri("/user")
                 .header(HttpHeaders.AUTHORIZATION, headerValue)
                 .exchangeToMono((ClientResponse resp) -> {
-                    if (resp.statusCode().is2xxSuccessful()) {
+                    int statusCode = resp.statusCode().value();
+                    
+                    // Handle redirects
+                    if (statusCode >= 300 && statusCode < 400) {
+                        log.warn("Auth service returned redirect {}", statusCode);
+                        return Mono.just(-1L);
+                    }
+                    
+                    if (statusCode >= 200 && statusCode < 300) {
                         return resp.bodyToMono(Map.class)
                                 .map(body -> {
                                     Object userIdObj = body.get("userId");
@@ -50,7 +58,7 @@ public class AuthenticationClient {
                         return resp.bodyToMono(String.class)
                                 .defaultIfEmpty("(no body)")
                                 .flatMap(body -> {
-                                    log.warn("Auth service returned {} with body: {}", resp.statusCode().value(), body);
+                                    log.warn("Auth service returned {} with body: {}", statusCode, body);
                                     return Mono.just(-1L);
                                 });
                     }
@@ -61,7 +69,8 @@ public class AuthenticationClient {
                 });
 
         try {
-            return mono.block();
+            Long result = mono.block();
+            return result != null ? result : -1L;
         } catch (Exception e) {
             log.error("Error blocking for user id", e);
             return -1L;

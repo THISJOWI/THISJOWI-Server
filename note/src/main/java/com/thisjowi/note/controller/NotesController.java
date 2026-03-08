@@ -39,9 +39,21 @@ public class NotesController {
         if (authHeader == null || authHeader.isEmpty()) {
             return null;
         }
-        Long userId = authenticationClient.getUserIdFromToken(authHeader);
-        // getUserIdFromToken returns -1 if there is an error
-        return (userId != null && userId >= 0) ? userId : null;
+        
+        // Validate Bearer format
+        if (!authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        
+        try {
+            Long userId = authenticationClient.getUserIdFromToken(authHeader);
+            // getUserIdFromToken returns -1 if there is an error
+            return (userId != null && userId >= 0) ? userId : null;
+        } catch (Exception e) {
+            // Log error but return null instead of throwing
+            System.err.println("Error extracting userId from token: " + e.getMessage());
+            return null;
+        }
     }
 
     @PostMapping
