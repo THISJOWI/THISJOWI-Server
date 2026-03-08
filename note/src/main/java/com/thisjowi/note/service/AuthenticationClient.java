@@ -30,10 +30,10 @@ public class AuthenticationClient {
 
     public Long getUserIdFromToken(String token) {
         String headerValue = token != null && token.startsWith("Bearer ") ? token : ("Bearer " + token);
-        log.debug("Calling Authentication service /v1/auth/user to validate token");
+        log.debug("Calling Authentication service /user endpoint to validate token");
 
         Mono<Long> mono = authenticationWebClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/v1/auth/user").build())
+                .uri("user")
                 .header(HttpHeaders.AUTHORIZATION, headerValue)
                 .exchangeToMono((ClientResponse resp) -> {
                     int statusCode = resp.statusCode().value();
