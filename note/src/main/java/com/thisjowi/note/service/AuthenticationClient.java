@@ -33,7 +33,7 @@ public class AuthenticationClient {
         log.debug("Calling Authentication service /user endpoint to validate token");
 
         Mono<Long> mono = authenticationWebClient.get()
-                .uri("user")
+                .uri("/v1/auth/user")
                 .header(HttpHeaders.AUTHORIZATION, headerValue)
                 .exchangeToMono((ClientResponse resp) -> {
                     int statusCode = resp.statusCode().value();
