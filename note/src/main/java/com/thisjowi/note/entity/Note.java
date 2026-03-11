@@ -16,7 +16,9 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "notes")
+@Table(name = "notes", uniqueConstraints = {
+   @UniqueConstraint(columnNames = {"title", "user_id"}, name = "uk_title_user")
+})
 public class Note {
 
    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +27,7 @@ public class Note {
    @Column(columnDefinition = "TEXT")
    private String content;
 
-   @Column(unique = true, nullable = false)
+   @Column(nullable = false)
    private String title;
 
    @DateTimeFormat
