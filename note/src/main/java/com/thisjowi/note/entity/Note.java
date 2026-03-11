@@ -34,6 +34,6 @@ public class Note {
    private Long userId;
 
    @Version
-   private Long version;
+   private Long version = 0L;
 
 }
