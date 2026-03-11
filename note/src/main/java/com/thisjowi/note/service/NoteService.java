@@ -40,6 +40,9 @@ public class NoteService {
 
     @Transactional
     public Note saveNote(Note note) {
+        // Save original title before encryption for error handling
+        String originalTitle = note.getTitle();
+        
         note.setTitle(EncryptionUtil.encrypt(note.getTitle()));
         note.setContent(EncryptionUtil.encrypt(note.getContent()));
         
@@ -58,10 +61,10 @@ public class NoteService {
             // Handle constraint violation: a note with same title for this user already exists
             // This can happen in concurrent scenarios - fetch and return the existing note
             logger.info("Constraint violation detected - note with title '{}' for user {} already exists", 
-                       EncryptionUtil.decrypt(note.getTitle()), note.getUserId());
+                       originalTitle, note.getUserId());
             
             Optional<Note> existing = noteRepository.findByTitleIgnoreCaseAndUserId(
-                EncryptionUtil.decrypt(note.getTitle()), 
+                originalTitle, 
                 note.getUserId()
             );
             
