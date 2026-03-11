@@ -33,4 +33,7 @@ public class Note {
 
    private Long userId;
 
+   @Version
+   private Long version;
+
 }

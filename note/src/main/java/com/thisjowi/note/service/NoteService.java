@@ -74,16 +74,27 @@ public class NoteService {
         Optional<Note> existingOptional = noteRepository.findByTitleIgnoreCaseAndUserId(titleToCheck, userId);
 
         if (existingOptional.isPresent()) {
-            // Update existing note
+            // Update existing note by creating a new entity with the ID to avoid stale object issues
             Note existing = existingOptional.get();
-            logger.info("Duplicate note detected for user {}, updating existing note id: {}", userId, existing.getId());
+            Long existingId = existing.getId();
+            logger.info("Duplicate note detected for user {}, updating existing note id: {}", userId, existingId);
 
-            // Update content
+            // Create a fresh entity for update to avoid OptimisticLocking issues
+            Note updateNote = new Note();
+            updateNote.setId(existingId);
+            updateNote.setUserId(userId);
+            updateNote.setTitle(EncryptionUtil.encrypt(titleToCheck));
+            
+            // Update content if provided
             if (note.getContent() != null && !note.getContent().isEmpty()) {
-                existing.setContent(EncryptionUtil.encrypt(note.getContent()));
+                updateNote.setContent(EncryptionUtil.encrypt(note.getContent()));
+            } else {
+                updateNote.setContent(existing.getContent());
             }
+            
+            updateNote.setCreatedAt(existing.getCreatedAt());
 
-            Note saved = noteRepository.save(existing);
+            Note saved = noteRepository.save(updateNote);
 
             // Return with decrypted content
             Note response = new Note();
