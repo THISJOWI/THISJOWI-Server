@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/thisuite/thisecure/pkg/telemetry"
 )
 
 type Producer struct {
@@ -32,15 +33,18 @@ func (p *Producer) Publish(ctx context.Context, key string, msg interface{}) err
 		return fmt.Errorf("marshal: %w", err)
 	}
 	signature := p.signer.Sign(payload)
-	headers := []kafka.Header{
-		{Key: "X-Signature", Value: []byte(signature)},
+	kafkaMsg := kafka.Message{
+		Key:   []byte(key),
+		Value: payload,
+		Headers: []kafka.Header{
+			{Key: "X-Signature", Value: []byte(signature)},
+		},
+		Time: time.Now(),
 	}
-	return p.writer.WriteMessages(ctx, kafka.Message{
-		Key:     []byte(key),
-		Value:   payload,
-		Headers: headers,
-		Time:    time.Now(),
-	})
+
+	telemetry.InjectTraceContext(ctx, &kafkaMsg)
+
+	return p.writer.WriteMessages(ctx, kafkaMsg)
 }
 
 func (p *Producer) Close() error {
