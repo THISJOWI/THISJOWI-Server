@@ -83,8 +83,6 @@ func (t *PgxTracer) TraceConnectEnd(ctx context.Context, data pgx.TraceConnectEn
 func EnablePoolTracing(pool *pgxpool.Pool, serviceName string) {
 	tracer := NewPgxTracer(serviceName)
 	pool.Config().ConnConfig.Tracer = tracer
-	pool.Config().ConnConfig.BatchTracer = tracer
-	pool.Config().ConnConfig.ConnectTracer = tracer
 }
 
 func truncate(s string, maxLen int) string {
