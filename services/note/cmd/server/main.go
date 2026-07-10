@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/hex"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,35 +21,61 @@ import (
 	"github.com/thisuite/thisecure/pkg/kafka"
 	"github.com/thisuite/thisecure/pkg/metrics"
 	mid "github.com/thisuite/thisecure/pkg/middleware"
+	"github.com/thisuite/thisecure/pkg/telemetry"
 )
 
 func main() {
 	cfg := config.Load()
 	ctx := context.Background()
 
+	otelCfg := telemetry.Config{
+		ServiceName:     cfg.OTELServiceName,
+		OTLPEndpoint:    cfg.OTLPEndpoint,
+		TraceSamplerArg: cfg.TraceSamplerArg,
+		LogLevel:        cfg.LogLevel,
+	}
+	telemetry.SetupLogging(otelCfg)
+
+	tp, mp, err := telemetry.InitTelemetry(ctx, otelCfg)
+	if err != nil {
+		slog.Error("failed to initialize telemetry", "error", err)
+	}
+	defer func() {
+		if err := telemetry.ShutdownTelemetry(context.Background(), tp, mp); err != nil {
+			slog.Error("telemetry shutdown error", "error", err)
+		}
+	}()
+
 	if cfg.JWTSecret == "" || len(cfg.JWTSecret) < 32 {
-		log.Fatal("JWT_SECRET must be set and at least 32 characters")
+		slog.Error("JWT_SECRET must be set and at least 32 characters")
+		os.Exit(1)
 	}
 	if cfg.EncryptionKey == "" {
-		log.Fatal("ENCRYPTION_KEY must be set")
+		slog.Error("ENCRYPTION_KEY must be set")
+		os.Exit(1)
 	}
 	encKey, err := hex.DecodeString(cfg.EncryptionKey)
 	if err != nil {
-		log.Fatalf("ENCRYPTION_KEY: invalid hex: %v", err)
+		slog.Error("invalid ENCRYPTION_KEY hex", "error", err)
+		os.Exit(1)
 	}
 	if err := crypto.ValidateKey(encKey); err != nil {
-		log.Fatalf("ENCRYPTION_KEY: %v", err)
+		slog.Error("invalid ENCRYPTION_KEY", "error", err)
+		os.Exit(1)
 	}
 
 	pool, err := database.NewPool(ctx, database.DefaultConfig(cfg.DatabaseURL))
 	if err != nil {
-		log.Fatalf("database: %v", err)
+		slog.Error("database", "error", err)
+		os.Exit(1)
 	}
 	defer pool.Close()
+	database.EnableTracing(pool, cfg.OTELServiceName)
 
 	jwtSecret := []byte(cfg.JWTSecret)
 	if cfg.KafkaSigningKey == "" {
-		log.Fatal("KAFKA_SIGNING_KEY must be set (separate from JWT_SECRET)")
+		slog.Error("KAFKA_SIGNING_KEY must be set")
+		os.Exit(1)
 	}
 	signer := kafka.NewSigner([]byte(cfg.KafkaSigningKey))
 	syncProducer := kafka.NewProducer(cfg.KafkaBrokers, "sync-events", signer)
@@ -60,7 +86,10 @@ func main() {
 	noteH := handler.NewNoteHandler(noteSvc)
 
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(telemetry.GinMiddleware(cfg.OTELServiceName))
+	r.Use(telemetry.RequestIDAttribute())
 	r.Use(mid.SecurityHeaders())
 	r.Use(mid.CORS(nil))
 	r.Use(mid.RateLimit(mid.NewRateLimiter(10, 20, time.Second)))
@@ -88,16 +117,17 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 	go func() {
-		log.Printf("note service listening on :%s", cfg.Port)
+		slog.Info("note service listening", "port", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server: %v", err)
+			slog.Error("server", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("shutting down...")
+	slog.Info("shutting down...")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
