@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/segmentio/kafka-go"
 	"go.opentelemetry.io/otel"
@@ -48,7 +48,7 @@ func (c *Consumer) Run(ctx context.Context) error {
 			return fmt.Errorf("fetch: %w", err)
 		}
 		if err := c.verifySignature(msg); err != nil {
-			log.Printf("WARN: signature verification failed: %v", err)
+			slog.Warn("signature verification failed", "error", err)
 			continue
 		}
 
@@ -70,14 +70,14 @@ func (c *Consumer) Run(ctx context.Context) error {
 			if err := c.handler(spanCtx, string(msg.Key), msg.Value); err != nil {
 				span.RecordError(err)
 				span.SetAttributes(attribute.Bool("error", true))
-				log.Printf("ERROR: handler failed: %v", err)
+				slog.Error("handler failed", "error", err)
 				span.End()
 				continue
 			}
 			span.End()
 		} else {
 			if err := c.handler(traceCtx, string(msg.Key), msg.Value); err != nil {
-				log.Printf("ERROR: handler failed: %v", err)
+				slog.Error("handler failed", "error", err)
 				continue
 			}
 		}
