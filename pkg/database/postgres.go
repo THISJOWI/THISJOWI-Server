@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/thisuite/thisecure/pkg/telemetry"
 )
 
 type Config struct {
@@ -47,4 +48,8 @@ func NewPool(ctx context.Context, cfg Config) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("ping: %w", err)
 	}
 	return pool, nil
+}
+
+func EnableTracing(pool *pgxpool.Pool, serviceName string) {
+	telemetry.EnablePoolTracing(pool, serviceName)
 }
