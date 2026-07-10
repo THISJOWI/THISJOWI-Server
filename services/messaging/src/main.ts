@@ -1,13 +1,18 @@
+import './telemetry/tracing';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 
 const serviceVersion = process.env.SERVICE_VERSION || '1.0.0';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const logger = new Logger('Bootstrap');
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: ['debug', 'verbose', 'log', 'warn', 'error'],
+  });
 
   const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
     .split(',').map(o => o.trim());
@@ -23,7 +28,7 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Messaging Service')
     .setDescription('Real-time messaging for LDAP users')
-    .setVersion('1.0')
+    .setVersion(serviceVersion)
     .addBearerAuth()
     .build();
 
@@ -32,7 +37,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`Messaging service running on port ${port}`);
+  logger.log(`Messaging service running on port ${port}`);
 }
 
 bootstrap();
