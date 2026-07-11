@@ -48,7 +48,7 @@ func Load() Config {
 	dbUser := getEnv("DB_USERNAME", "postgres")
 	dbPass := getEnv("DB_PASSWORD", "postgres")
 	cfg.VaultEnabled = getEnv("VAULT_ENABLED", "false") == "true"
-	cfg.VaultAddr = getEnv("VAULT_ADDR", "https://corp.thisjowi.com")
+	cfg.VaultAddr = getEnv("VAULT_ADDR", "https://vault.thisjowi.com")
 	cfg.VaultK8sAuthRole = getEnv("VAULT_K8S_AUTH_ROLE", "connection")
 	cfg.VaultDBRole = getEnv("VAULT_DB_ROLE", "connections")
 	cfg.DatabaseURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", dbUser, dbPass, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode)
