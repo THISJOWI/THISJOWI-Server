@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-const ServiceVersion = "1.0.1"
+const ServiceVersion = "1.0.2"
 
 type Config struct {
 	Port            string
