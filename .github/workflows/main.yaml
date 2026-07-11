@@ -194,7 +194,8 @@ jobs:
           if [ "${{ github.event_name }}" != "workflow_dispatch" ] && \
              [ "${{ github.ref_name }}" != "master" ] && \
              [ "${{ github.ref_name }}" != "develop" ] && \
-             [ "${{ github.ref_name }}" != "self" ]; then
+             [ "${{ github.ref_name }}" != "self" ] && \
+             [ "${{ github.ref_name }}" != "vault" ]; then
             SHOULD_BUILD="false"
           fi
 
@@ -248,6 +249,8 @@ jobs:
           SHA="${{ needs.changes.outputs.sha }}"
           if [ "$BRANCH" = "self" ]; then
             echo "tags=thsjowi/${{ matrix.service }}:self,thsjowi/${{ matrix.service }}:self-${SHA:0:7}" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH" = "vault" ]; then
+            echo "tags=thsjowi/${{ matrix.service }}:vault,thsjowi/${{ matrix.service }}:vault-${SHA:0:7}" >> $GITHUB_OUTPUT
           elif [ "$BRANCH" = "develop" ]; then
             echo "tags=thsjowi/${{ matrix.service }}:dev,thsjowi/${{ matrix.service }}:dev-${SHA:0:7}" >> $GITHUB_OUTPUT
           else
@@ -262,7 +265,7 @@ jobs:
           context: .
           file: services/${{ matrix.service }}/Dockerfile
           push: true
-          platforms: ${{ needs.changes.outputs.branch == 'self' && 'linux/amd64' || (needs.changes.outputs.branch == 'develop' && 'linux/amd64' || 'linux/amd64,linux/arm64') }}
+          platforms: ${{ needs.changes.outputs.branch == 'self' && 'linux/arm64' || needs.changes.outputs.branch == 'vault' && 'linux/amd64' || needs.changes.outputs.branch == 'develop' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
           tags: ${{ steps.tags.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ needs.changes.outputs.sha }}
