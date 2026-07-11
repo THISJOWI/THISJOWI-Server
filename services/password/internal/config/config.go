@@ -11,11 +11,18 @@ const ServiceVersion = "1.0.1"
 type Config struct {
 	Port            string
 	DatabaseURL     string
+	DBHost          string
+	DBPort          string
+	DBName          string
+	DBSSLMode       string
 	JWTSecret       string
 	EncryptionKey   string
 	KafkaSigningKey string
 	KafkaBrokers    []string
-	DBSSLMode       string
+	VaultEnabled    bool
+	VaultAddr       string
+	VaultK8sAuthRole string
+	VaultDBRole     string
 	OTLPEndpoint    string
 	OTELServiceName string
 	TraceSamplerArg float64
@@ -35,11 +42,16 @@ func Load() Config {
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
 	}
 
-	dbHost := getEnv("DB_HOST", "localhost")
-	dbPort := getEnv("DB_PORT", "5432")
+	cfg.DBHost = getEnv("DB_HOST", "localhost")
+	cfg.DBPort = getEnv("DB_PORT", "5432")
+	cfg.DBName = getEnv("DB_NAME", "passwords")
 	dbUser := getEnv("DB_USERNAME", "postgres")
 	dbPass := getEnv("DB_PASSWORD", "postgres")
-	cfg.DatabaseURL = fmt.Sprintf("postgres://%s:%s@%s:%s/passwords?sslmode=%s", dbUser, dbPass, dbHost, dbPort, cfg.DBSSLMode)
+	cfg.VaultEnabled = getEnv("VAULT_ENABLED", "false") == "true"
+	cfg.VaultAddr = getEnv("VAULT_ADDR", "https://corp.thisjowi.com")
+	cfg.VaultK8sAuthRole = getEnv("VAULT_K8S_AUTH_ROLE", "connection")
+	cfg.VaultDBRole = getEnv("VAULT_DB_ROLE", "connections")
+	cfg.DatabaseURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", dbUser, dbPass, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode)
 
 	kafkaHost := getEnv("KAFKA_HOST", "localhost")
 	kafkaPort := getEnv("KAFKA_PORT", "9092")

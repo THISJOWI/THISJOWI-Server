@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ import (
 	"github.com/thisuite/thisecure/pkg/metrics"
 	mid "github.com/thisuite/thisecure/pkg/middleware"
 	"github.com/thisuite/thisecure/pkg/telemetry"
+	"github.com/thisuite/thisecure/pkg/vault"
 )
 
 func main() {
@@ -62,6 +64,28 @@ func main() {
 	if err := crypto.ValidateKey(encKey); err != nil {
 		slog.Error("invalid ENCRYPTION_KEY", "error", err)
 		os.Exit(1)
+	}
+
+	if cfg.VaultEnabled {
+		vc := vault.Config{
+			Addr:        cfg.VaultAddr,
+			K8sAuthRole: cfg.VaultK8sAuthRole,
+			DBRole:      cfg.VaultDBRole,
+		}
+		vtoken, err := vault.Login(ctx, vc)
+		if err != nil {
+			slog.Error("vault login", "error", err)
+			os.Exit(1)
+		}
+		creds, err := vault.FetchDBCreds(ctx, vtoken, vc)
+		if err != nil {
+			slog.Error("vault fetch db creds", "error", err)
+			os.Exit(1)
+		}
+		cfg.DatabaseURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			creds.Username, creds.Password,
+			cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode)
+		go vault.StartRenewal(ctx, vtoken, creds, cfg.VaultAddr)
 	}
 
 	pool, err := database.NewPool(ctx, database.DefaultConfig(cfg.DatabaseURL))
